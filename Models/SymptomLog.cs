@@ -12,5 +12,6 @@ public class SymptomLog
     public string Date { get; set; } = string.Empty;
     public string Symptoms { get; set; } = string.Empty; // Store as comma-separated string
     public string? Notes { get; set; }
+    public string? AITip { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

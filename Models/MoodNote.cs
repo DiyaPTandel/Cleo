@@ -11,5 +11,6 @@ public class MoodNote
     [Required]
     public string Mood { get; set; } = "Happy"; // Happy, Neutral, Sad, etc.
     public string? Note { get; set; }
+    public string? AITip { get; set; }
     public DateTime Date { get; set; } = DateTime.UtcNow;
 }

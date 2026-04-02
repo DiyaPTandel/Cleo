@@ -19,6 +19,20 @@
         </div>
     </div>
 
+    @if (TempData["AITip"] != null)
+    {
+        <div class="ai-suggestion-card-v3 animate-fade-in">
+            <div class="ai-badge-v3">
+                <span class="ai-icon-v3">✨</span>
+                <span class="badge-text-v3">AI Suggestion</span>
+            </div>
+            <div class="suggestion-content-v3">
+                <p>@TempData["AITip"]</p>
+            </div>
+            <div class="card-glow-v3"></div>
+        </div>
+    }
+
     <form method="post" action="/Dashboard/LogMood" class="mood-form-v3">
         @Html.AntiForgeryToken()
 
@@ -68,6 +82,27 @@
                         <span class="name">Excited</span>
                     </div>
                 </label>
+                <label class="mood-btn-v3">
+                    <input type="radio" name="mood" value="Anxious" />
+                    <div class="btn-content">
+                        <span class="emoji">😟</span>
+                        <span class="name">Anxious</span>
+                    </div>
+                </label>
+                <label class="mood-btn-v3">
+                    <input type="radio" name="mood" value="Stressed" />
+                    <div class="btn-content">
+                        <span class="emoji">😫</span>
+                        <span class="name">Stressed</span>
+                    </div>
+                </label>
+                <label class="mood-btn-v3">
+                    <input type="radio" name="mood" value="Sensitive" />
+                    <div class="btn-content">
+                        <span class="emoji">🥺</span>
+                        <span class="name">Sensitive</span>
+                    </div>
+                </label>
             </div>
         </div>
 
@@ -98,6 +133,9 @@
                         "Angry" => "😠",
                         "Tired" => "😴",
                         "Excited" => "🤩",
+                        "Anxious" => "😟",
+                        "Stressed" => "😫",
+                        "Sensitive" => "🥺",
                         _ => "😶"
                     };
                     <div class="history-item-v3">
@@ -108,6 +146,13 @@
                                 <span class="history-timestamp-v3">@entry.Date.ToString("MMM dd, yyyy")</span>
                             </div>
                             <p class="history-desc-v3">@entry.Note</p>
+                            @if (!string.IsNullOrEmpty(entry.AITip))
+                            {
+                                <div class="history-ai-tip-v3">
+                                    <span class="ai-mini-icon-v3">✨</span>
+                                    <p>@entry.AITip</p>
+                                </div>
+                            }
                         </div>
                     </div>
                 }

@@ -4,16 +4,19 @@ using System.Text.Json;
 using cleo.Data;
 using cleo.Models;
 using Microsoft.EntityFrameworkCore;
+using cleo.Services;
 
 namespace cleo.Controllers;
 
 public class DashboardController : Controller
 {
     private readonly CleoDbContext _db;
+    private readonly IAIService _aiService;
 
-    public DashboardController(CleoDbContext db)
+    public DashboardController(CleoDbContext db, IAIService aiService)
     {
         _db = db;
+        _aiService = aiService;
     }
 
     [HttpGet]
@@ -114,10 +117,20 @@ public class DashboardController : Controller
         if (userId == null) return RedirectToAction("Login", "Public");
 
         var selected = symptoms != null ? string.Join(", ", symptoms) : "";
-        _db.SymptomLogs.Add(new SymptomLog { UserId = userId.Value, Date = date, Symptoms = selected, Notes = notes });
+        var tip = await _aiService.GetSymptomTipAsync(symptoms ?? new List<string>(), notes);
+        
+        _db.SymptomLogs.Add(new SymptomLog 
+        { 
+            UserId = userId.Value, 
+            Date = date, 
+            Symptoms = selected, 
+            Notes = notes,
+            AITip = tip
+        });
         await _db.SaveChangesAsync();
 
         TempData["SymptomsMessage"] = "Symptoms logged to your profile!";
+        TempData["AITip"] = tip;
         return RedirectToAction(nameof(LogSymptoms));
     }
 
@@ -191,8 +204,16 @@ public class DashboardController : Controller
         var userId = HttpContext.Session.GetInt32("UserId");
         if (userId != null)
         {
-            _db.MoodNotes.Add(new MoodNote { UserId = userId.Value, Mood = mood, Note = description });
+            var tip = await _aiService.GetMoodTipAsync(mood, description);
+            _db.MoodNotes.Add(new MoodNote 
+            { 
+                UserId = userId.Value, 
+                Mood = mood, 
+                Note = description,
+                AITip = tip
+            });
             await _db.SaveChangesAsync();
+            TempData["AITip"] = tip;
         }
         return RedirectToAction(nameof(Mood));
     }
