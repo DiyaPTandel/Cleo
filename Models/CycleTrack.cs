@@ -11,4 +11,5 @@ public class CycleTrack
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsCurrentCycle { get; set; } = false;
+    public string? Flow { get; set; }
 }

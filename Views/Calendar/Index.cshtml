@@ -3,6 +3,72 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/Calendar.css" />
+    <style>
+        .calendar-cell-v3.is-selected {
+            background-color: #EF4444 !important;
+            color: white !important;
+            border-color: #B91C1C !important;
+        }
+        .floating-save-btn {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #EF4444;
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            display: none;
+            cursor: pointer;
+            border: none;
+            z-index: 1000;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        .floating-save-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+        }
+        .flow-selector-v3 {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 1000;
+            gap: 1rem;
+            align-items: center;
+            border: 1px solid #E2E8F0;
+        }
+        .flow-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            transition: background 0.2s;
+        }
+        .flow-option:hover {
+            background: #F8FAFC;
+        }
+        .flow-option input {
+            display: none;
+        }
+        .flow-option input:checked + .flow-label {
+            color: #EF4444;
+            font-weight: 700;
+        }
+        .flow-label {
+            font-size: 0.9rem;
+            color: #64748B;
+        }
+    </style>
 }
 
 <div class="calendar-page-v3">
@@ -19,8 +85,12 @@
                 <p>Track your cycle across the month</p>
             </div>
         </div>
-        <div class="header-right">
-            <a asp-controller="Dashboard" asp-action="LogPeriod" class="btn-cal-v3 btn-light-blue">Log Period</a>
+        <div class="header-right" style="display: flex; align-items: center; gap: 1rem;">
+            <button class="btn-cal-v3" style="background: none; border: none; color: #EF4444; padding: 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleLogMode()" title="Log Period">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                </svg>
+            </button>
             <a asp-controller="Dashboard" asp-action="History" class="btn-cal-v3 btn-accent-blue">View History</a>
         </div>
     </div>
@@ -28,14 +98,14 @@
     <!-- Main Calendar Card -->
     <div class="calendar-container-v3">
         <div class="month-selector-v3">
-            <h2>February 2026</h2>
+            <h2>@ViewBag.MonthTitle</h2>
             <div class="selector-actions">
-                <button class="nav-arrow-btn">
+                <a href="@Url.Action("Calendar", new { year = ViewBag.PrevYear, month = ViewBag.PrevMonth })" class="nav-arrow-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                <button class="nav-arrow-btn">
+                </a>
+                <a href="@Url.Action("Calendar", new { year = ViewBag.NextYear, month = ViewBag.NextMonth })" class="nav-arrow-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -49,13 +119,20 @@
             <div class="day-header">Fri</div>
             <div class="day-header">Sat</div>
 
-            @for (int i = 1; i <= 28; i++)
+            @for (int i = 0; i < ViewBag.FirstDayOfWeek; i++)
             {
-                var highlight = ((dynamic[])ViewBag.CalendarDays).FirstOrDefault(d => d.Day == i);
-                string highlightClass = highlight != null ? $"is-{highlight.Type}" : "";
-                bool isToday = (i == 19); // Hardcoded for matching the image (February 19th)
+                <div class="calendar-cell-v3 empty"></div>
+            }
 
-                <div class="calendar-cell-v3 @highlightClass @(isToday ? "is-today" : "")">
+            @for (int i = 1; i <= ViewBag.DaysInMonth; i++)
+            {
+                var highlight = ((IEnumerable<dynamic>)ViewBag.CalendarDays).FirstOrDefault(d => d.Day == i);
+                string highlightClass = highlight != null && highlight.Type != "none" && highlight.Type != "today" ? $"is-{highlight.Type}" : "";
+                bool isToday = (i == ViewBag.TodayDay);
+
+                <div class="calendar-cell-v3 @highlightClass @(isToday ? "is-today" : "")" 
+                     data-date="@ViewBag.CurrentYear-@ViewBag.CurrentMonth.ToString("D2")-@i.ToString("D2")"
+                     onclick="handleCellClick(this, '@ViewBag.CurrentYear-@ViewBag.CurrentMonth.ToString("D2")-@i.ToString("D2")')">
                     <span class="cell-number">@i</span>
                 </div>
             }
@@ -85,3 +162,95 @@
         </div>
     </div>
 </div>
+</div>
+
+<!-- Hidden form for inline submission -->
+<form id="inlineLogForm" asp-controller="Dashboard" asp-action="LogPeriod" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="startDate" id="inlineStartDate" />
+    <input type="hidden" name="endDate" id="inlineEndDate" />
+    <input type="hidden" name="source" id="inlineSource" value="Calendar" />
+    <input type="hidden" name="year" id="inlineYear" />
+    <input type="hidden" name="month" id="inlineMonth" />
+    <input type="hidden" name="flow" id="inlineFlow" />
+</form>
+
+<div id="flowSelector" class="flow-selector-v3">
+    <span style="font-weight: 600; color: #475569; font-size: 0.9rem; margin-right: 0.5rem;">Flow:</span>
+    <label class="flow-option">
+        <input type="radio" name="flow_choice" value="Light" />
+        <span class="flow-label">Light</span>
+    </label>
+    <label class="flow-option">
+        <input type="radio" name="flow_choice" value="Medium" checked />
+        <span class="flow-label">Medium</span>
+    </label>
+    <label class="flow-option">
+        <input type="radio" name="flow_choice" value="Heavy" />
+        <span class="flow-label">Heavy</span>
+    </label>
+</div>
+
+<button id="floatingSaveBtn" class="floating-save-btn" onclick="submitPeriod()">Save Selected Days</button>
+
+
+
+<script>
+    let isLoggingMode = false;
+    let selectedDates = [];
+
+
+    function toggleLogMode() {
+        isLoggingMode = !isLoggingMode;
+        if (isLoggingMode) {
+            selectedDates = [];
+            document.querySelectorAll('.calendar-cell-v3.is-period').forEach(el => {
+                const dateStr = el.getAttribute('data-date');
+                if (!selectedDates.includes(dateStr)) {
+                    selectedDates.push(dateStr);
+                    el.classList.add('is-selected');
+                }
+            });
+            document.getElementById('floatingSaveBtn').style.display = 'block';
+            document.getElementById('flowSelector').style.display = 'flex';
+        } else {
+            document.getElementById('floatingSaveBtn').style.display = 'none';
+            document.getElementById('flowSelector').style.display = 'none';
+            selectedDates = [];
+            document.querySelectorAll('.calendar-cell-v3.is-selected').forEach(el => el.classList.remove('is-selected'));
+        }
+    }
+
+    function handleCellClick(element, dateStr) {
+        if (!isLoggingMode) return;
+        
+        if (selectedDates.includes(dateStr)) {
+            // Deselect: remove from array and UI classes
+            selectedDates = selectedDates.filter(d => d !== dateStr);
+            element.classList.remove('is-selected');
+            element.classList.remove('is-period'); // allow editing of existing logged dates
+        } else {
+            // Select: add to array and UI classes
+            selectedDates.push(dateStr);
+            element.classList.add('is-selected');
+            element.classList.add('is-period'); // ensure newly added dates show period styling
+        }
+    }
+
+    function submitPeriod() {
+        if (selectedDates.length === 0) {
+            return;
+        }
+        
+        selectedDates.sort();
+        document.getElementById('inlineStartDate').value = selectedDates[0];
+        document.getElementById('inlineEndDate').value = selectedDates[selectedDates.length - 1];
+        document.getElementById('inlineYear').value = @ViewBag.CurrentYear;
+        document.getElementById('inlineMonth').value = @ViewBag.CurrentMonth;
+        document.getElementById('inlineFlow').value = document.querySelector('input[name="flow_choice"]:checked').value;
+        document.getElementById('inlineSource').value = "Calendar";
+        document.getElementById('inlineLogForm').submit();
+    }
+
+
+</script>

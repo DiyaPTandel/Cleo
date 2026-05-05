@@ -116,22 +116,42 @@
         </div>
     </div>
 
+    <!-- Custom Alert Modal -->
+    <div id="cleoModal" class="modal-overlay-v3" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px);">
+        <div class="modal-card-v3" style="background: white; padding: 2.5rem; border-radius: 1.5rem; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center;">
+            <div id="modalIcon" style="width: 60px; height: 60px; border-radius: 50%; background: #FEE2E2; color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </div>
+            <h2 id="modalTitle" style="margin-bottom: 0.75rem; color: #1E293B; font-size: 1.5rem; font-weight: 700;">Wait a second</h2>
+            <p id="modalMessage" style="color: #64748B; margin-bottom: 2rem; font-size: 1rem; line-height: 1.5;"></p>
+            <button type="button" onclick="closeCleoModal()" style="padding: 1rem 2rem; border: none; background: #0EA5E9; color: white; border-radius: 0.75rem; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem; transition: background 0.2s;">Got it</button>
+        </div>
+    </div>
+
     <script>
+        function showCleoModal(message) {
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('cleoModal').style.display = 'flex';
+        }
+
+        function closeCleoModal() {
+            document.getElementById('cleoModal').style.display = 'none';
+        }
+
         function nextStep(step) {
             // Basic validation
             let currentStep = step - 1;
-            let isValid = true;
             
             if (currentStep === 1) {
                 let checked = document.querySelector('input[name="ageGroup"]:checked');
                 if (!checked) {
-                    alert("Please select your age group.");
+                    showCleoModal("Please select your age group to continue.");
                     return;
                 }
             } else if (currentStep === 2) {
                 let dateVal = document.querySelector('input[name="lastPeriodDate"]').value;
                 if (!dateVal) {
-                    alert("Please select a date.");
+                    showCleoModal("Please select the first day of your previous period.");
                     return;
                 }
             }

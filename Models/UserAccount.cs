@@ -18,6 +18,7 @@ public class UserAccount
     
     // Onboarding preferences
     public string? AgeGroup { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public int CycleLength { get; set; } = 28;
     public int PeriodLength { get; set; } = 5;
     public DateTime? LastActivityDate { get; set; } = DateTime.UtcNow;

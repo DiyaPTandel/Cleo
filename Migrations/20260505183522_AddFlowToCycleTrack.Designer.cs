@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using cleo.Data;
 
@@ -10,9 +11,11 @@ using cleo.Data;
 namespace cleo.Migrations
 {
     [DbContext(typeof(CleoDbContext))]
-    partial class CleoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505183522_AddFlowToCycleTrack")]
+    partial class AddFlowToCycleTrack
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.25");
@@ -51,7 +54,7 @@ namespace cleo.Migrations
                             Id = 1,
                             Email = "admin@cleo.app",
                             IsSuperAdmin = true,
-                            LastActive = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6757),
+                            LastActive = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5268),
                             Name = "Admin",
                             Password = "password123"
                         },
@@ -60,7 +63,7 @@ namespace cleo.Migrations
                             Id = 2,
                             Email = "diya@cleo.app",
                             IsSuperAdmin = true,
-                            LastActive = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6798),
+                            LastActive = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5271),
                             Name = "Diya",
                             Password = "password123"
                         },
@@ -69,7 +72,7 @@ namespace cleo.Migrations
                             Id = 3,
                             Email = "hensy@cleo.app",
                             IsSuperAdmin = true,
-                            LastActive = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6800),
+                            LastActive = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5272),
                             Name = "Hensy",
                             Password = "password123"
                         });
@@ -111,9 +114,9 @@ namespace cleo.Migrations
                         new
                         {
                             Id = 1,
-                            Category = "Quick-Nutrition",
-                            Content = "During your period, your body loses iron. Focus on leafy greens, lentils, and lean meats to maintain energy levels.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6887),
+                            Category = "Nutrition",
+                            Content = "Detailed analysis...",
+                            PublishDate = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5355),
                             Status = "Published",
                             Title = "Focus on Iron-Rich Foods",
                             Views = 1240
@@ -122,8 +125,8 @@ namespace cleo.Migrations
                         {
                             Id = 2,
                             Category = "Exercise",
-                            Content = "Gentle yoga poses like Child's Pose and Cat-Cow can help relax pelvic muscles and reduce menstrual cramping.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6890),
+                            Content = "Detailed analysis...",
+                            PublishDate = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5357),
                             Status = "Published",
                             Title = "Yoga for Cramp Relief",
                             Views = 952
@@ -131,9 +134,9 @@ namespace cleo.Migrations
                         new
                         {
                             Id = 3,
-                            Category = "Wellness",
-                            Content = "The Luteinizing Hormone (LH) surge triggers ovulation. Tracking this can help you identify your most fertile days.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6891),
+                            Category = "Science",
+                            Content = "Detailed analysis...",
+                            PublishDate = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5358),
                             Status = "Published",
                             Title = "Understanding LH Surge",
                             Views = 1520
@@ -141,72 +144,12 @@ namespace cleo.Migrations
                         new
                         {
                             Id = 4,
-                            Category = "PMS-Relief",
-                            Content = "Reduce salt intake and stay hydrated to combat hormonal water retention during the luteal phase.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6892),
+                            Category = "Health",
+                            Content = "Detailed analysis...",
+                            PublishDate = new DateTime(2026, 5, 5, 18, 35, 21, 972, DateTimeKind.Utc).AddTicks(5359),
                             Status = "Published",
                             Title = "Managing PMS Bloating",
                             Views = 840
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Category = "Quick-Nutrition",
-                            Content = "Magnesium-rich foods like dark chocolate and pumpkin seeds can help stabilize mood swings and reduce anxiety.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6893),
-                            Status = "Published",
-                            Title = "Magnesium for Mood",
-                            Views = 620
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Category = "Exercise",
-                            Content = "A 20-minute brisk walk increases blood flow and releases endorphins, which can alleviate low-level period pain.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6894),
-                            Status = "Published",
-                            Title = "The Power of Walking",
-                            Views = 750
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Category = "Wellness",
-                            Content = "Estrogen rises during this phase, often leading to increased energy and improved cognitive focus. It's a great time for new projects.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6895),
-                            Status = "Published",
-                            Title = "The Follicular Phase",
-                            Views = 1100
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Category = "Hygiene",
-                            Content = "Your body temperature changes throughout your cycle, which can affect sleep. Keep your room cool during the luteal phase.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6896),
-                            Status = "Published",
-                            Title = "Sleep Hygiene & Cycles",
-                            Views = 430
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Category = "Quick-Nutrition",
-                            Content = "Raspberry leaf and ginger teas are known for their ability to soothe the uterus and reduce inflammation.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6896),
-                            Status = "Published",
-                            Title = "Herbal Tea Benefits",
-                            Views = 510
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Category = "Exercise",
-                            Content = "You might feel strongest during your follicular phase. High-intensity training is often most effective during this time.",
-                            PublishDate = new DateTime(2026, 5, 5, 19, 17, 26, 531, DateTimeKind.Utc).AddTicks(6897),
-                            Status = "Published",
-                            Title = "Strength Training Timing",
-                            Views = 890
                         });
                 });
 
@@ -339,9 +282,6 @@ namespace cleo.Migrations
 
                     b.Property<int>("CycleLength")
                         .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .IsRequired()
