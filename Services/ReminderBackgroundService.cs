@@ -28,14 +28,21 @@ public class ReminderBackgroundService : BackgroundService
                 var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
                 
                 await reminderService.ProcessDailyRemindersAsync();
+
+                // Wait until next day or next check
+                await Task.Delay(_checkInterval, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Normal shutdown, ignore
+                _logger.LogInformation("Reminder Background Service is stopping due to cancellation.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while processing daily reminders.");
+                // Delay briefly if an error occurs to prevent rapid restart
+                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
-
-            // Wait until next day or next check
-            await Task.Delay(_checkInterval, stoppingToken);
         }
     }
 }

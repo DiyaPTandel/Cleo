@@ -18,6 +18,7 @@ public class CleoDbContext : DbContext
     public DbSet<SymptomLog> SymptomLogs { get; set; } = null!;
     public DbSet<Reminder> Reminders { get; set; } = null!;
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -25,7 +26,7 @@ public class CleoDbContext : DbContext
         // Seed some data for initial state
         modelBuilder.Entity<AdminMember>().HasData(
             new AdminMember { Id = 1, Name = "Admin", Email = "admin@cleo.app", Password = "password123", IsSuperAdmin = true },
-            new AdminMember { Id = 2, Name = "Ava", Email = "ava@cleo.app", Password = "password123", IsSuperAdmin = true },
+            new AdminMember { Id = 2, Name = "Diya", Email = "diya@cleo.app", Password = "password123", IsSuperAdmin = true },
             new AdminMember { Id = 3, Name = "Hensy", Email = "hensy@cleo.app", Password = "password123", IsSuperAdmin = true }
         );
 
