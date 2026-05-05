@@ -136,7 +136,44 @@
         }
 
         .action-icon-v3:hover { background-color: #F1F5F9; }
+        .action-icon-v3:hover { background-color: #F1F5F9; }
         .action-icon-v3.delete { color: #EF4444; }
+
+        /* Custom Modal V3 */
+        .admin-modal-overlay-v3 {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            transition: all 0.2s ease;
+        }
+        .admin-modal-overlay-v3.active { opacity: 1; pointer-events: auto; }
+        .admin-modal-v3 {
+            background: white; width: 100%; max-width: 400px;
+            border-radius: 1.5rem; padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.95); transition: all 0.2s ease;
+        }
+        .admin-modal-overlay-v3.active .admin-modal-v3 { transform: scale(1); }
+        .modal-icon-v3 {
+            width: 48px; height: 48px; background: #FEF2F2; color: #EF4444;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.25rem; font-size: 1.5rem;
+        }
+        .modal-title-v3 { font-size: 1.25rem; font-weight: 800; color: #1E293B; margin-bottom: 0.5rem; }
+        .modal-desc-v3 { font-size: 0.95rem; color: #64748B; margin-bottom: 2rem; line-height: 1.5; }
+        .modal-actions-v3 { display: flex; gap: 0.75rem; }
+        .btn-modal-confirm-v3 {
+            flex: 1; padding: 0.75rem; border-radius: 2rem; border: none;
+            background: #EF4444; color: white; font-weight: 700; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-modal-confirm-v3:hover { background: #DC2626; }
+        .btn-modal-cancel-v3 {
+            flex: 1; padding: 0.75rem; border-radius: 2rem; border: 1px solid #E2E8F0;
+            background: #F8FAFC; color: #475569; font-weight: 700; cursor: pointer;
+        }
+        .btn-modal-cancel-v3:hover { background: #F1F5F9; }
     </style>
 }
 
@@ -233,15 +270,21 @@
                         </td>
                         <td>
                             <div class="action-btns-v3">
-                                <button class="action-icon-v3" title="View">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                </button>
-                                <button class="action-icon-v3" title="Edit">
+                                <button type="button" class="action-icon-v3" title="Edit" onclick="openEditUserModal(@user.Id, `@Html.Raw(user.Name.Replace("`", "\\`"))`, `@user.Email`, '@user.Status', @user.CycleLength, @user.PeriodLength)">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="action-icon-v3 delete" title="Delete">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
+                                <form asp-action="BlockUser" asp-route-id="@user.Id" method="post" style="display:inline;" onsubmit="showConfirmModal(event, this, 'block')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="action-icon-v3" title="@(user.Status == cleo.Models.AccountStatus.Blocked ? "Unblock" : "Block")">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                                    </button>
+                                </form>
+                                <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" style="display:inline;" onsubmit="showConfirmModal(event, this, 'delete')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="action-icon-v3 delete" title="Delete">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -250,3 +293,129 @@
         </table>
     </div>
 </div>
+
+<!-- Custom Confirmation Modal -->
+<div class="admin-modal-overlay-v3" id="confirmModal">
+    <div class="admin-modal-v3">
+        <div class="modal-icon-v3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </div>
+        <h3 class="modal-title-v3" id="modalTitle">Delete User?</h3>
+        <p class="modal-desc-v3" id="modalDesc">Are you sure you want to delete this user? This action cannot be undone and will remove all associated data.</p>
+        <div class="modal-actions-v3">
+            <button class="btn-modal-cancel-v3" id="modalCancel">Cancel</button>
+            <button class="btn-modal-confirm-v3" id="modalConfirm">Delete anyway</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="admin-modal-overlay-v3" id="editUserModal">
+    <div class="admin-modal-v3" style="max-width: 500px;">
+        <div class="modal-icon-v3" style="background: #E0F2FE; color: #0EA5E9; margin: 0 auto 1.25rem auto;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </div>
+        <h3 class="modal-title-v3" style="text-align: center;">Edit User Profile</h3>
+        <p class="modal-desc-v3" style="margin-bottom: 1.5rem; text-align: center;">Update the user's details and preferences.</p>
+        
+        <form asp-action="EditUser" method="post" id="editUserForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" id="editUserId" />
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; text-align: left; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Name</label>
+                    <input type="text" name="Name" id="editUserName" style="width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #E2E8F0; border-radius: 6px;" required />
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Email</label>
+                    <input type="email" name="Email" id="editUserEmail" style="width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #E2E8F0; border-radius: 6px; background-color: #F1F5F9; color: #94A3B8; cursor: not-allowed;" readonly />
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Cycle Length</label>
+                        <input type="number" name="CycleLength" id="editUserCycle" style="width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #E2E8F0; border-radius: 6px;" required />
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Period Length</label>
+                        <input type="number" name="PeriodLength" id="editUserPeriod" style="width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #E2E8F0; border-radius: 6px;" required />
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Status</label>
+                    <select name="Status" id="editUserStatus" style="width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #E2E8F0; border-radius: 6px;">
+                        <option value="Active">Active</option>
+                        <option value="Blocked">Blocked</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-actions-v3">
+                <button type="button" class="btn-modal-cancel-v3" onclick="closeEditUserModal()">Cancel</button>
+                <button type="submit" class="btn-modal-confirm-v3" style="background: #0EA5E9;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let formToSubmit = null;
+
+        function showConfirmModal(event, form, actionType) {
+            event.preventDefault();
+            formToSubmit = form;
+            
+            let title = document.getElementById('modalTitle');
+            let desc = document.getElementById('modalDesc');
+            let btn = document.getElementById('modalConfirm');
+            
+            if(actionType === 'delete') {
+                title.innerText = 'Delete User?';
+                desc.innerText = 'Are you sure you want to delete this user? This action cannot be undone and will remove all associated data.';
+                btn.innerText = 'Delete anyway';
+                btn.style.background = '#EF4444';
+            } else if(actionType === 'block') {
+                title.innerText = 'Change User Status?';
+                desc.innerText = 'Are you sure you want to change the status of this user? This will affect their access.';
+                btn.innerText = 'Confirm';
+                btn.style.background = '#F59E0B';
+            }
+            
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function openEditUserModal(id, name, email, status, cycle, period) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUserName').value = name;
+            document.getElementById('editUserEmail').value = email;
+            document.getElementById('editUserStatus').value = status;
+            document.getElementById('editUserCycle').value = cycle;
+            document.getElementById('editUserPeriod').value = period;
+            document.getElementById('editUserModal').classList.add('active');
+        }
+
+        function closeEditUserModal() {
+            document.getElementById('editUserModal').classList.remove('active');
+        }
+
+        document.getElementById('modalCancel').addEventListener('click', function() {
+            document.getElementById('confirmModal').classList.remove('active');
+            formToSubmit = null;
+        });
+
+        document.getElementById('modalConfirm').addEventListener('click', function() {
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+        });
+
+        // Close on escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('confirmModal').classList.remove('active');
+                closeEditUserModal();
+            }
+        });
+    </script>
+}

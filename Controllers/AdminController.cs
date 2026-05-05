@@ -79,39 +79,66 @@ public class AdminController : Controller
         ViewBag.UsersList = await _db.Users.ToListAsync();
         return View();
     }
+    
 
-    [HttpGet]
-    public async Task<IActionResult> Roles()
-    {
-        var guard = EnsureAdminSession();
-        if (guard != null) return guard;
-
-        ViewBag.AdminStats = new 
-        { 
-            Total = await _db.Admins.CountAsync(), 
-            Super = await _db.Admins.CountAsync(a => a.IsSuperAdmin), 
-            Active = await _db.Admins.CountAsync(), 
-            Inactive = 0 
-        };
-        ViewBag.AdminsList = await _db.Admins.ToListAsync();
-
-        return View();
-    }
-
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddAdmin(string name, string email, string password)
+    public async Task<IActionResult> EditUser(UserAccount model)
     {
         var guard = EnsureAdminSession();
         if (guard != null) return guard;
-
-        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(email))
-        {
-            _db.Admins.Add(new AdminMember { Name = name, Email = email, Password = password ?? "Password123" });
-            await _db.SaveChangesAsync();
-        }
-        return RedirectToAction(nameof(Roles));
+        
+        if (!ModelState.IsValid) return View(model);
+        
+        var existingUser = await _db.Users.FindAsync(model.Id);
+        if (existingUser == null) return NotFound();
+        
+        existingUser.Name = model.Name;
+        existingUser.Status = model.Status;
+        existingUser.CycleLength = model.CycleLength;
+        existingUser.PeriodLength = model.PeriodLength;
+        
+        await _db.SaveChangesAsync();
+        TempData["AdminMessage"] = "User updated successfully!";
+        return RedirectToAction(nameof(Users));
     }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BlockUser(int id)
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+        
+        var user = await _db.Users.FindAsync(id);
+        if (user != null)
+        {
+            user.Status = (user.Status == AccountStatus.Blocked) ? AccountStatus.Active : AccountStatus.Blocked;
+            await _db.SaveChangesAsync();
+            TempData["AdminMessage"] = $"User status changed to {user.Status}!";
+        }
+        return RedirectToAction(nameof(Users));
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+        
+        var user = await _db.Users.FindAsync(id);
+        if (user != null)
+        {
+            _db.Users.Remove(user);
+            await _db.SaveChangesAsync();
+            TempData["AdminMessage"] = "User deleted successfully!";
+        }
+        return RedirectToAction(nameof(Users));
+    }
+
+
 
     [HttpGet]
     public async Task<IActionResult> Content()
@@ -121,6 +148,47 @@ public class AdminController : Controller
 
         ViewBag.ArticlesList = await _db.Articles.ToListAsync();
         return View();
+    }
+    
+
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditArticle(ContentArticle model)
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+        
+        if (!ModelState.IsValid) return View(model);
+        
+        var existing = await _db.Articles.FindAsync(model.Id);
+        if (existing == null) return NotFound();
+        
+        existing.Title = model.Title;
+        existing.Category = model.Category;
+        existing.Content = model.Content;
+        existing.Status = model.Status;
+        
+        await _db.SaveChangesAsync();
+        TempData["AdminMessage"] = "Article updated successfully!";
+        return RedirectToAction(nameof(Content));
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteArticle(int id)
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+        
+        var article = await _db.Articles.FindAsync(id);
+        if (article != null)
+        {
+            _db.Articles.Remove(article);
+            await _db.SaveChangesAsync();
+            TempData["AdminMessage"] = "Article deleted successfully!";
+        }
+        return RedirectToAction(nameof(Content));
     }
 
     [HttpPost]

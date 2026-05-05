@@ -40,7 +40,6 @@ public class ReminderBackgroundService : BackgroundService
                 using var scope = _serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<CleoDbContext>();
                 var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
-
                 // Get all notification settings whose DefaultReminderTime matches current minute
                 var matchingSettings = await db.NotificationSettings
                     .Where(s => s.DefaultReminderTime == currentTime)

@@ -31,8 +31,13 @@ public class DashboardController : Controller
 
         var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
         var user = await _db.Users.FindAsync(userId);
+        
+        if (user == null) 
+        {
+            return RedirectToAction("Login", "Public");
+        }
 
-        ViewBag.UserName = user?.Name ?? "User";
+        ViewBag.UserName = user.Name;
         
         var lastCycle = await _db.CycleTracks
             .Where(c => c.UserId == userId)
@@ -40,7 +45,7 @@ public class DashboardController : Controller
             .FirstOrDefaultAsync();
 
         // Ensure user goes through onboarding if they haven't set their profiling info
-        if (string.IsNullOrEmpty(user?.AgeGroup) || lastCycle == null)
+        if (string.IsNullOrEmpty(user.AgeGroup) || lastCycle == null)
         {
             return RedirectToAction("Onboarding", "Public");
         }
