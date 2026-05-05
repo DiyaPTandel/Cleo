@@ -54,11 +54,19 @@ public class AdminController : Controller
             StorageUsed = "42%"
         };
 
-        // Static activity for now, log logic pending
-        ViewBag.RecentActivity = new[]
+        var latestUsers = await _db.Users.OrderByDescending(u => u.Id).Take(3).ToListAsync();
+        var recentActivity = latestUsers.Select(u => new { 
+            User = u.Name, 
+            Action = "Joined CLEO", 
+            Time = u.JoinDate.ToString("MMM dd, yyyy") 
+        }).ToList();
+        
+        if (!recentActivity.Any())
         {
-            new { User = "System", Action = "DB Initialized", Time = "10 mins ago" }
-        };
+            recentActivity.Add(new { User = "System", Action = "DB Initialized", Time = "10 mins ago" });
+        }
+
+        ViewBag.RecentActivity = recentActivity;
 
         return View();
     }
@@ -145,6 +153,14 @@ public class AdminController : Controller
     {
         var guard = EnsureAdminSession();
         if (guard != null) return guard;
+
+        ViewBag.Stats = new
+        {
+            TotalArticles = await _db.Articles.CountAsync(),
+            Published = await _db.Articles.CountAsync(a => a.Status == "Published"),
+            Drafts = await _db.Articles.CountAsync(a => a.Status == "Draft"),
+            Categories = await _db.Articles.Select(a => a.Category).Distinct().CountAsync()
+        };
 
         ViewBag.ArticlesList = await _db.Articles.ToListAsync();
         return View();

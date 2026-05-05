@@ -3,7 +3,22 @@
     Layout = "_DashboardLayout";
 }
 @section Styles {
-    <link rel="stylesheet" href="~/css/Dashboard.css" />
+    <link rel="stylesheet" href="~/css/Dashboard.css" asp-append-version="true" />
+    <style>
+        .mood-option {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mood-option:hover {
+            background-color: #EBF8FF;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        .mood-option.active {
+            border-color: #EDF2F7 !important;
+            background-color: #EBF8FF !important;
+            box-shadow: 0 4px 12px rgba(16, 81, 127, 0.1);
+        }
+    </style>
 }
 
 <div class="dashboard-v2">
@@ -11,6 +26,17 @@
         <h1>Welcome back, @ViewBag.UserName!</h1>
         <p>Here's your cycle overview for today</p>
     </div>
+
+    @if (TempData["AITip"] != null)
+    {
+        <div class="ai-tip-dashboard">
+            <div class="ai-tip-icon">✨</div>
+            <div class="ai-tip-content">
+                <h4>Cleo AI Insight</h4>
+                <p>@TempData["AITip"]</p>
+            </div>
+        </div>
+    }
 
     <div class="top-stats-grid">
         <!-- Next Period Card -->
@@ -127,22 +153,22 @@
                     <div class="insight-item blue-bg">
                         <span class="dot-blue"></span>
                         <div class="insight-text">
-                            <strong>Regular Cycle Pattern</strong>
-                            <p>Your cycle has been consistent for the past 3 months</p>
+                            <strong>@(ViewBag.IsRegular ? "Regular Cycle Pattern" : "Irregular Cycle Pattern")</strong>
+                            <p>@(ViewBag.IsRegular ? "Your cycle has been consistent recently." : "Your cycle shows some variations recently.")</p>
                         </div>
                     </div>
                     <div class="insight-item purple-bg">
                         <span class="dot-purple"></span>
                         <div class="insight-text">
                             <strong>Approaching Fertile Window</strong>
-                            <p>Your fertile window starts in 5 days</p>
+                            <p>Your fertile window starts in @ViewBag.DaysUntilFertile days</p>
                         </div>
                     </div>
                     <div class="insight-item blue-bg">
                         <span class="dot-blue"></span>
                         <div class="insight-text">
                             <strong>Average Cycle Length</strong>
-                            <p>Your average cycle is 28 days</p>
+                            <p>Your average cycle is @ViewBag.AvgCycleLength days</p>
                         </div>
                     </div>
                 </div>
@@ -313,10 +339,14 @@
                 localStorage.setItem(REMINDER_SENT_KEY, JSON.stringify(sentReminders));
             };
 
-            // Run check on load
             if (isEnabled) {
                 checkAndTriggerNotifications();
             }
         });
+
+        function submitMood(mood) {
+            document.getElementById('selectedMood').value = mood;
+            document.getElementById('moodForm').submit();
+        }
     </script>
 }
