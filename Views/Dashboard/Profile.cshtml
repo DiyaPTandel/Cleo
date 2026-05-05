@@ -12,10 +12,17 @@
         <p>Manage your account and cycle information</p>
     </div>
 
+    @if (TempData["ProfileMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["ProfileMessage"]
+        </div>
+    }
+
     <!-- User Banner Card -->
     <div class="profile-banner-card">
         <div class="banner-avatar">
-            <img src="https://ui-avatars.com/api/?name=Hensy+Patel&background=EBF8FF&color=10517F&size=100" alt="Hensy" />
+            <img src="https://ui-avatars.com/api/?name=@(ViewBag.Profile.Name)&background=EBF8FF&color=10517F&size=100" alt="Avatar" />
         </div>
         <div class="banner-info">
             <h2>@ViewBag.Profile.Name</h2>
@@ -24,43 +31,49 @@
     </div>
 
     <!-- Info Form Section -->
-    <div class="profile-section-card">
-        <div class="form-grid-v2">
-            <div class="form-group-v2">
-                <label>👤 Full Name</label>
-                <input type="text" value="@ViewBag.Profile.Name" readonly />
+    <form asp-action="UpdateProfile" method="post" class="profile-form-v2">
+        @Html.AntiForgeryToken()
+        <div class="profile-section-card">
+            <div class="form-grid-v2">
+                <div class="form-group-v2">
+                    <label>👤 Full Name</label>
+                    <input type="text" name="name" value="@ViewBag.Profile.Name" required />
+                </div>
+                <div class="form-group-v2">
+                    <label>✉️ Email Address</label>
+                    <input type="email" value="@ViewBag.Profile.Email" readonly class="input-readonly" />
+                    <small class="form-hint">Email cannot be changed</small>
+                </div>
+                <div class="form-group-v2">
+                    <label>📅 Age Group</label>
+                    <select name="ageGroup" class="form-select-v2">
+                        <option value="Under 18" selected="@(ViewBag.Profile.AgeGroup == "Under 18")">Under 18</option>
+                        <option value="18-24" selected="@(ViewBag.Profile.AgeGroup == "18-24")">18-24</option>
+                        <option value="25-34" selected="@(ViewBag.Profile.AgeGroup == "25-34")">25-34</option>
+                        <option value="35-44" selected="@(ViewBag.Profile.AgeGroup == "35-44")">35-44</option>
+                        <option value="45+" selected="@(ViewBag.Profile.AgeGroup == "45+")">45+</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group-v2">
-                <label>✉️ Email Address</label>
-                <input type="email" value="@ViewBag.Profile.Email" readonly />
-            </div>
-            <div class="form-group-v2">
-                <label>📅 Date of Birth</label>
-                <input type="text" value="01/01/2005" readonly />
-            </div>
-        </div>
 
-        <h3 class="subsection-title">Cycle information</h3>
-        <div class="form-grid-v2">
-            <div class="form-group-v2">
-                <label>Age</label>
-                <input type="text" value="19" readonly />
+            <h3 class="subsection-title">Cycle information</h3>
+            <div class="form-grid-v2">
+                <div class="form-group-v2">
+                    <label>Cycle Length (days)</label>
+                    <input type="number" name="cycleLength" value="@ViewBag.Profile.CycleLength" min="15" max="50" required />
+                </div>
+                <div class="form-group-v2">
+                    <label>Period Length (days)</label>
+                    <input type="number" name="periodLength" value="@ViewBag.Profile.PeriodLength" min="1" max="15" required />
+                </div>
             </div>
-            <div class="form-group-v2">
-                <label>Avg cycle length (days)</label>
-                <input type="text" value="28" readonly />
-            </div>
-            <div class="form-group-v2">
-                <label>Avg period length (days)</label>
-                <input type="text" value="5" readonly />
-            </div>
-        </div>
 
-        <div class="form-actions-v2">
-            <button class="btn-profile-primary">Update Profile</button>
-            <button class="btn-profile-secondary">Cancel</button>
+            <div class="form-actions-v2">
+                <button type="submit" class="btn-profile-primary">Save Changes</button>
+                <button type="reset" class="btn-profile-secondary">Discard</button>
+            </div>
         </div>
-    </div>
+    </form>
 
     <!-- Stats Grid Row -->
     <div class="profile-stats-row">
@@ -85,15 +98,34 @@
     <!-- Security Sections -->
     <div class="profile-section-card">
         <h3 class="subsection-title-danger">Delete Account</h3>
-        <p class="danger-desc">Want to delete your account?</p>
-        <button class="btn-danger-outline">Delete Account</button>
-        <p class="danger-warning">Warning: This action cannot be undone. All your data will be permanently deleted.</p>
+        <p class="danger-desc">Are you sure you want to delete your account?</p>
+        <form asp-action="DeleteAccount" method="post" onsubmit="return confirm('WARNING: This action is permanent and cannot be undone. All your data will be lost. Proceed?')">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn-danger-outline">Delete My Account Permanently</button>
+        </form>
+        <p class="danger-warning">Once you delete your account, there is no going back. Please be certain.</p>
     </div>
 
     <form asp-controller="Public" asp-action="Logout" method="post" class="profile-logout-form">
         @Html.AntiForgeryToken()
         <button type="submit" class="btn-profile-logout">
-            <span>🚪</span> Logout
+            <span>🚪</span> Logout from Cleo
         </button>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('fade-out');
+                    setTimeout(() => {
+                        alert.style.display = 'none';
+                    }, 500); // Match CSS transition duration
+                }, 3000); // 3 seconds visibility
+            });
+        });
+    </script>
+}

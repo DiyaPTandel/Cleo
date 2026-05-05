@@ -1,9 +1,10 @@
 .tips-page-v3 {
     min-height: 100vh;
-    background-color: #EBF8FF; /* Light blue v3 background */
-    padding: 3rem 2rem;
-    max-width: 1200px;
+    background-color: #F8FAFC;
+    padding: 2rem 3rem;
+    max-width: 1480px;
     margin: 0 auto;
+    box-sizing: border-box;
     animation: fadeIn 0.4s ease-out;
 }
 
@@ -138,11 +139,13 @@
   line-height: 1.6;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
+  .tips-page-v3 { padding: 2rem; }
   .tips-grid-v3 { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
+  .tips-page-v3 { padding: 1.5rem 1.25rem; }
   .tips-grid-v3 { grid-template-columns: 1fr; }
   .tab-btn { padding: 0.5rem 1rem; font-size: 0.8rem; }
 }

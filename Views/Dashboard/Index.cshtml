@@ -78,13 +78,43 @@
 
             <!-- Mood Section -->
             <div class="section-card mood-select-card">
-                <h3>How are you feeling today?</h3>
-                <div class="mood-grid-v2">
-                    <div class="mood-option @(ViewBag.Mood == "Happy" ? "active" : "")">Happy</div>
-                    <div class="mood-option @(ViewBag.Mood == "Calm" ? "active" : "")">Calm</div>
-                    <div class="mood-option @(ViewBag.Mood == "Tired" ? "active" : "")">Tired</div>
-                    <div class="mood-option @(ViewBag.Mood == "Sad" ? "active" : "")">Sad</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 0;">How are you feeling today?</h3>
+                    <a asp-action="Mood" class="btn-text" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">View History</a>
                 </div>
+                <div id="moodSuccessMsg" style="display: none; background: #D6BCFA; color: white; padding: 0.75rem; text-align: center; border-radius: var(--radius-md); margin-bottom: 1rem; font-weight: bold;">
+                    Mood logged for today! 💜
+                </div>
+                <form id="quickMoodForm" method="post" asp-action="LogMood" asp-controller="Dashboard">
+                    <input type="hidden" name="description" value="" />
+                    <input type="hidden" name="mood" id="quickMoodInput" value="" />
+                    <div class="mood-grid-v2">
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Happy" ? "active" : "")" onclick="submitQuickMood('Happy', this)">
+                            <span class="emoji-icon">😊</span><span class="mood-label">Happy</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Calm" ? "active" : "")" onclick="submitQuickMood('Calm', this)">
+                            <span class="emoji-icon">😌</span><span class="mood-label">Calm</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Tired" ? "active" : "")" onclick="submitQuickMood('Tired', this)">
+                            <span class="emoji-icon">😴</span><span class="mood-label">Tired</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Sad" ? "active" : "")" onclick="submitQuickMood('Sad', this)">
+                            <span class="emoji-icon">😔</span><span class="mood-label">Sad</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Angry" ? "active" : "")" onclick="submitQuickMood('Angry', this)">
+                            <span class="emoji-icon">😠</span><span class="mood-label">Angry</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Excited" ? "active" : "")" onclick="submitQuickMood('Excited', this)">
+                            <span class="emoji-icon">🤩</span><span class="mood-label">Excited</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Anxious" ? "active" : "")" onclick="submitQuickMood('Anxious', this)">
+                            <span class="emoji-icon">😟</span><span class="mood-label">Anxious</span>
+                        </button>
+                        <button type="button" class="mood-option @(ViewBag.Mood == "Sensitive" ? "active" : "")" onclick="submitQuickMood('Sensitive', this)">
+                            <span class="emoji-icon">🥺</span><span class="mood-label">Sensitive</span>
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <!-- Insights Section -->
@@ -201,6 +231,30 @@
 
 @section Scripts {
     <script>
+        function submitQuickMood(mood, buttonElement) {
+            document.getElementById('quickMoodInput').value = mood;
+            const form = document.getElementById('quickMoodForm');
+            const data = new FormData(form);
+            
+            // Remove active class from all
+            document.querySelectorAll('.mood-option').forEach(btn => btn.classList.remove('active'));
+            // Add active to clicked
+            buttonElement.classList.add('active');
+
+            fetch(form.action, {
+                method: 'POST',
+                body: data
+            })
+            .then(response => {
+                if(response.ok) {
+                    const msg = document.getElementById('moodSuccessMsg');
+                    msg.style.display = 'block';
+                    setTimeout(() => msg.style.display = 'none', 3000);
+                }
+            })
+            .catch(error => console.error('Error logging mood:', error));
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const toggle = document.getElementById('notificationToggle');
             const REMINDER_SENT_KEY = 'cleo_reminders_sent_today';

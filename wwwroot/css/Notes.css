@@ -1,9 +1,10 @@
 .notes-page-v3 {
     min-height: 100vh;
     background-color: #F8FAFC;
-    padding: 3rem 2rem;
-    max-width: 1000px;
+    padding: 2rem 3rem;
+    max-width: 1480px;
     margin: 0 auto;
+    box-sizing: border-box;
     animation: fadeIn 0.4s ease-out;
 }
 
@@ -276,7 +277,12 @@
     cursor: pointer;
 }
 
+@media (max-width: 1280px) {
+    .notes-page-v3 { padding: 2rem; }
+}
+
 @media (max-width: 640px) {
+    .notes-page-v3 { padding: 1.5rem 1.25rem; }
     .notes-header-v3 {
         flex-direction: column;
         align-items: flex-start;

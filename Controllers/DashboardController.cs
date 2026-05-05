@@ -149,6 +149,10 @@ public class DashboardController : Controller
             _db.CycleTracks.Add(new CycleTrack { UserId = userId.Value, StartDate = start, EndDate = end });
             await _db.SaveChangesAsync();
             await _reminderService.UpdateLastActivityAsync(userId.Value);
+            
+            // Send New Cycle Summary Email if enabled
+            await _reminderService.SendNewCycleSummaryAsync(userId.Value);
+            
             TempData["PeriodMessage"] = "Period cycle logged successfully!";
         }
         
@@ -335,6 +339,64 @@ public class DashboardController : Controller
         };
 
         return View("~/Views/Dashboard/Profile.cshtml");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfile(string name, string ageGroup, int cycleLength, int periodLength)
+    {
+        var guard = EnsureUserSession();
+        if (guard != null) return guard;
+
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToAction("Login", "Public");
+
+        var user = await _db.Users.FindAsync(userId.Value);
+        if (user != null)
+        {
+            user.Name = name;
+            user.AgeGroup = ageGroup;
+            user.CycleLength = cycleLength;
+            user.PeriodLength = periodLength;
+            await _db.SaveChangesAsync();
+            
+            HttpContext.Session.SetString("Name", name);
+            TempData["ProfileMessage"] = "Profile updated successfully!";
+        }
+
+        return RedirectToAction(nameof(Profile));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        var guard = EnsureUserSession();
+        if (guard != null) return guard;
+
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToAction("Login", "Public");
+
+        var user = await _db.Users.FindAsync(userId.Value);
+        if (user != null)
+        {
+            var cycles = _db.CycleTracks.Where(c => c.UserId == userId);
+            var moods = _db.MoodNotes.Where(m => m.UserId == userId);
+            var symptoms = _db.SymptomLogs.Where(s => s.UserId == userId);
+            var reminders = _db.Reminders.Where(r => r.UserId == userId);
+
+            _db.CycleTracks.RemoveRange(cycles);
+            _db.MoodNotes.RemoveRange(moods);
+            _db.SymptomLogs.RemoveRange(symptoms);
+            _db.Reminders.RemoveRange(reminders);
+            _db.Users.Remove(user);
+
+            await _db.SaveChangesAsync();
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Public");
+        }
+
+        return RedirectToAction(nameof(Profile));
     }
 
     [HttpGet]

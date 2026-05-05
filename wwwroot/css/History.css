@@ -1,8 +1,9 @@
 .history-page-v3 {
-    padding: 3rem 2rem;
-    max-width: 1200px;
+    padding: 2rem 3rem;
+    max-width: 1480px;
     margin: 0 auto;
-    background-color: #F7FAFD; /* Matches the light blue-grey background from image */
+    box-sizing: border-box;
+    background-color: #F8FAFC;
     min-height: 100vh;
     animation: fadeIn 0.4s ease-out;
 }
@@ -228,7 +229,8 @@
     opacity: 0.7;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
+    .history-page-v3 { padding: 2rem; }
     .stats-grid-v3 {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -239,11 +241,9 @@
 }
 
 @media (max-width: 640px) {
+    .history-page-v3 { padding: 1.5rem 1.25rem; }
     .stats-grid-v3 {
         grid-template-columns: 1fr;
-    }
-    .history-page-v3 {
-        padding: 2rem 1.5rem;
     }
     .history-header-v3 h1 {
         font-size: 1.75rem;

@@ -37,6 +37,7 @@
                     <a class="nav-link @(path == "/calendar" ? "nav-link-active" : "")" asp-controller="Dashboard" asp-action="Calendar">Calendar</a>
                     <a class="nav-link @(path == "/notes" ? "nav-link-active" : "")" asp-controller="Dashboard" asp-action="Notes">Notes</a>
                     <a class="nav-link @(path == "/tips" ? "nav-link-active" : "")" asp-controller="Dashboard" asp-action="Tips">Smart Tips</a>
+                    <a class="nav-link @(path.StartsWith("/Reminders") ? "nav-link-active" : "")" asp-controller="Reminders" asp-action="Manage">Reminders</a>
                     
                     <div class="profile-dropdown-container">
                         <button class="nav-profile-trigger" id="profile-trigger">

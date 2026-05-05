@@ -29,5 +29,111 @@
 
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    @if (Context.Session.GetString("Role") == "User")
+    {
+        <script>
+        // === Cleo Daily Check-in In-App Scheduler ===
+        // Fires ONCE per day per reminder-time setting.
+        // If the user changes their time, it fires again at the new time (same day).
+        (function () {
+            const STORAGE_KEY = 'cleo_checkin_fired';
+            let schedulerInterval = null;
+            let currentReminderTime = null;
+
+            function getTodayStr() {
+                return new Date().toISOString().split('T')[0];
+            }
+
+            // Check if already fired TODAY at this SPECIFIC time
+            function hasAlreadyFiredFor(reminderTime) {
+                try {
+                    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                    return stored.date === getTodayStr() && stored.time === reminderTime;
+                } catch { return false; }
+            }
+
+            // Mark as fired for today + this specific time
+            function markFiredFor(reminderTime) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    date: getTodayStr(),
+                    time: reminderTime
+                }));
+            }
+
+            function fireCheckInNotification(reminderTime) {
+                if (Notification.permission !== 'granted') return;
+                new Notification('🌸 Cleo Daily Check-in', {
+                    body: 'Time to log your mood, symptoms, and thoughts. Your future self will thank you!',
+                    icon: '/images/logo.png',
+                    tag: 'cleo-daily-checkin'  // OS deduplication within the same tag
+                });
+                markFiredFor(reminderTime);
+            }
+
+            function getCurrentHHMM() {
+                const now = new Date();
+                return now.getHours().toString().padStart(2, '0') + ':' +
+                       now.getMinutes().toString().padStart(2, '0');
+            }
+
+            function startScheduler(reminderTime) {
+                currentReminderTime = reminderTime;
+                if (schedulerInterval) clearInterval(schedulerInterval);
+
+                schedulerInterval = setInterval(function () {
+                    // If time was updated by polling, use the latest
+                    const t = currentReminderTime;
+                    if (!t) return;
+                    if (hasAlreadyFiredFor(t)) return;          // already done at this time today
+                    if (getCurrentHHMM() === t) {
+                        fireCheckInNotification(t);
+                    }
+                }, 30000); // every 30s — reliably catches any minute
+            }
+
+            // Poll server every 2 min to pick up time changes immediately
+            async function fetchAndRefresh() {
+                try {
+                    const resp = await fetch('/Reminders/GetCheckInTime');
+                    if (!resp.ok) return;
+                    const data = await resp.json();
+                    if (!data.enabled || !data.time) {
+                        // Disabled — stop scheduler
+                        if (schedulerInterval) clearInterval(schedulerInterval);
+                        currentReminderTime = null;
+                        return;
+                    }
+                    // If time changed, update scheduler (notification will fire at new time)
+                    if (data.time !== currentReminderTime) {
+                        startScheduler(data.time);
+                    }
+                } catch (e) {
+                    console.warn('Cleo scheduler: poll failed.', e);
+                }
+            }
+
+            async function initCheckInScheduler() {
+                if (!('Notification' in window)) return;
+                if (Notification.permission === 'default') {
+                    await Notification.requestPermission();
+                }
+                if (Notification.permission !== 'granted') return;
+
+                // First fetch
+                await fetchAndRefresh();
+
+                // Keep polling every 2 minutes so time changes take effect without page refresh
+                setInterval(fetchAndRefresh, 120000);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCheckInScheduler);
+            } else {
+                initCheckInScheduler();
+            }
+        })();
+        </script>
+    }
 </body>
 </html>

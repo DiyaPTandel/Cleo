@@ -106,13 +106,18 @@
 }
 
 .navbar-container {
-  max-width: 1200px;
+  max-width: 1480px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2rem;
+  padding: 0 3rem;
 }
+
+@media (max-width: 1280px) {
+  .navbar-container { padding: 0 2rem; }
+}
+
 
 .navbar-logo {
   text-decoration: none;

@@ -24,8 +24,23 @@
   margin: 0 auto;
 }
 
-.content-inner {
-  padding: 1.5rem;
+/* === GLOBAL PAGE WRAPPER ===
+   Use this on the root container of every user-facing page.
+   Gives a consistent, professional left/right margin that scales with screen. */
+.page-wrapper {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 3rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1280px) {
+  .page-wrapper { padding: 0 2rem; }
+}
+
+@media (max-width: 768px) {
+  .page-wrapper { padding: 0 1.25rem; }
 }
 
 /* Grid System */
