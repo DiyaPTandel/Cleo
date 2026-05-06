@@ -169,8 +169,8 @@ public class DashboardController : Controller
             ViewBag.OvulationDaysUntil = 0;
         }
 
-        ViewBag.CycleLength = user.CycleLength;
-        ViewBag.PeriodLength = user.PeriodLength;
+        ViewBag.CycleLength = user?.CycleLength ?? 28;
+        ViewBag.PeriodLength = user?.PeriodLength ?? 5;
 
         // Real symptoms/mood
         ViewBag.Symptoms = await _db.SymptomLogs.Where(s => s.UserId == userId).Take(3).Select(s => s.Symptoms).ToListAsync();
@@ -390,7 +390,7 @@ public class DashboardController : Controller
         ViewBag.TotalCycles = history.Count;
         
         // 1. Average Cycle Length
-        int avgCycle = user.CycleLength;
+        int avgCycle = user?.CycleLength ?? 28;
         if (history.Count >= 2)
         {
             var lengths = new List<double>();

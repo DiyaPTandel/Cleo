@@ -70,7 +70,7 @@ public class RemindersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> TestNotification()
+    public IActionResult TestNotification()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null) return Unauthorized();

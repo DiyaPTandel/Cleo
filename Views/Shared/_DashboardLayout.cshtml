@@ -39,77 +39,86 @@
     {
         <script>
         // === Cleo Daily Check-in In-App Scheduler ===
-        // Fires ONCE per day per reminder-time setting.
-        // If the user changes their time, it fires again at the new time (same day).
         (function () {
-            const STORAGE_KEY = 'cleo_checkin_fired';
+            const STORAGE_KEY = 'cleo_checkin_fired_v2';
             let schedulerInterval = null;
             let currentReminderTime = null;
 
             function getTodayStr() {
-                return new Date().toISOString().split('T')[0];
+                const now = new Date();
+                return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
             }
 
-            // Check if already fired TODAY at this SPECIFIC time
-            function hasAlreadyFiredFor(reminderTime) {
+            function hasAlreadyFiredToday() {
                 try {
                     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                    return stored.date === getTodayStr() && stored.time === reminderTime;
+                    return stored.date === getTodayStr();
                 } catch { return false; }
             }
 
-            // Mark as fired for today + this specific time
-            function markFiredFor(reminderTime) {
+            function markFiredToday() {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                    date: getTodayStr(),
-                    time: reminderTime
+                    date: getTodayStr()
                 }));
             }
 
-            function fireCheckInNotification(reminderTime) {
+            function fireCheckInNotification() {
                 if (Notification.permission !== 'granted') return;
+                
+                console.log("Cleo: Firing daily check-in notification.");
                 new Notification('🌸 Cleo Daily Check-in', {
                     body: 'Time to log your mood, symptoms, and thoughts. Your future self will thank you!',
                     icon: '/images/logo.png',
-                    tag: 'cleo-daily-checkin'  // OS deduplication within the same tag
+                    tag: 'cleo-daily-checkin'
                 });
-                markFiredFor(reminderTime);
+                markFiredToday();
             }
 
-            function getCurrentHHMM() {
+            function isTimePassed(reminderTime) {
+                if (!reminderTime) return false;
                 const now = new Date();
-                return now.getHours().toString().padStart(2, '0') + ':' +
-                       now.getMinutes().toString().padStart(2, '0');
+                const [rHour, rMin] = reminderTime.split(':').map(Number);
+                const cHour = now.getHours();
+                const cMin = now.getMinutes();
+                
+                if (cHour > rHour) return true;
+                if (cHour === rHour && cMin >= rMin) return true;
+                return false;
             }
 
             function startScheduler(reminderTime) {
                 currentReminderTime = reminderTime;
                 if (schedulerInterval) clearInterval(schedulerInterval);
 
+                console.log("Cleo: Scheduler started for " + reminderTime);
+
+                // Check immediately
+                if (!hasAlreadyFiredToday() && isTimePassed(reminderTime)) {
+                    fireCheckInNotification();
+                }
+
                 schedulerInterval = setInterval(function () {
-                    // If time was updated by polling, use the latest
-                    const t = currentReminderTime;
-                    if (!t) return;
-                    if (hasAlreadyFiredFor(t)) return;          // already done at this time today
-                    if (getCurrentHHMM() === t) {
-                        fireCheckInNotification(t);
+                    if (!currentReminderTime) return;
+                    if (hasAlreadyFiredToday()) return;
+
+                    if (isTimePassed(currentReminderTime)) {
+                        fireCheckInNotification();
                     }
-                }, 30000); // every 30s — reliably catches any minute
+                }, 30000); // every 30s
             }
 
-            // Poll server every 2 min to pick up time changes immediately
             async function fetchAndRefresh() {
                 try {
                     const resp = await fetch('/Reminders/GetCheckInTime');
                     if (!resp.ok) return;
                     const data = await resp.json();
+                    
                     if (!data.enabled || !data.time) {
-                        // Disabled — stop scheduler
                         if (schedulerInterval) clearInterval(schedulerInterval);
                         currentReminderTime = null;
                         return;
                     }
-                    // If time changed, update scheduler (notification will fire at new time)
+
                     if (data.time !== currentReminderTime) {
                         startScheduler(data.time);
                     }
@@ -120,16 +129,14 @@
 
             async function initCheckInScheduler() {
                 if (!('Notification' in window)) return;
-                if (Notification.permission === 'default') {
-                    await Notification.requestPermission();
-                }
-                if (Notification.permission !== 'granted') return;
-
-                // First fetch
-                await fetchAndRefresh();
-
-                // Keep polling every 2 minutes so time changes take effect without page refresh
-                setInterval(fetchAndRefresh, 120000);
+                
+                // If permission is already granted, start polling
+                if (Notification.permission === 'granted') {
+                    await fetchAndRefresh();
+                    setInterval(fetchAndRefresh, 120000);
+                } 
+                // If it's the reminders page, we don't auto-request to avoid interrupting the user's flow
+                // The reminders page has its own "Send Test" button which handles permission.
             }
 
             if (document.readyState === 'loading') {
