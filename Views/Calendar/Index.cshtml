@@ -127,7 +127,7 @@
             @for (int i = 1; i <= ViewBag.DaysInMonth; i++)
             {
                 var highlight = ((IEnumerable<dynamic>)ViewBag.CalendarDays).FirstOrDefault(d => d.Day == i);
-                string highlightClass = highlight != null && highlight.Type != "none" && highlight.Type != "today" ? $"is-{highlight.Type}" : "";
+                string highlightClass = highlight != null && highlight?.Type != "none" && highlight?.Type != "today" ? $"is-{highlight?.Type}" : "";
                 bool isToday = (i == ViewBag.TodayDay);
 
                 <div class="calendar-cell-v3 @highlightClass @(isToday ? "is-today" : "")" 
