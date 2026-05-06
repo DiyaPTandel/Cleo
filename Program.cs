@@ -14,6 +14,8 @@ builder.Services.AddScoped<IAIService, AIService>();
 builder.Services.AddScoped<ICyclePredictionService, CyclePredictionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddHostedService<ReminderBackgroundService>();
 
 builder.Services.AddDistributedMemoryCache();

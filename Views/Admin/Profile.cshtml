@@ -1,0 +1,177 @@
+@model cleo.Models.AdminMember
+@{
+    ViewData["Title"] = "Admin Profile";
+    Layout = "_AdminLayout";
+}
+
+<style>
+    .admin-profile-v4 {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .profile-header-v4 {
+        margin-bottom: 2rem;
+    }
+
+    .profile-header-v4 h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #10517F;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .profile-header-v4 p {
+        color: #718096;
+        margin: 0;
+    }
+
+    .profile-card-v4 {
+        background: white;
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid #EDF2F7;
+    }
+
+    .avatar-section-v4 {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #EDF2F7;
+    }
+
+    .avatar-img-v4 {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-info-v4 h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+        color: #2D3748;
+    }
+
+    .avatar-info-v4 p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.875rem;
+    }
+
+    .form-group-v4 {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group-v4 label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #4A5568;
+        font-size: 0.875rem;
+    }
+
+    .form-control-v4 {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        color: #2D3748;
+        transition: all 0.2s;
+    }
+
+    .form-control-v4:focus {
+        outline: none;
+        border-color: #10517F;
+        box-shadow: 0 0 0 3px rgba(16, 81, 127, 0.1);
+    }
+
+    .form-control-v4[readonly] {
+        background-color: #F7FAFC;
+        cursor: not-allowed;
+    }
+
+    .btn-save-v4 {
+        background: #10517F;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-save-v4:hover {
+        background: #0B3F63;
+    }
+
+    .alert-success {
+        background-color: #C6F6D5;
+        border: 1px solid #9AE6B4;
+        color: #22543D;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+</style>
+
+<div class="admin-profile-v4">
+    <div class="profile-header-v4">
+        <h1>Admin Profile</h1>
+        <p>Manage your account settings and personal information.</p>
+    </div>
+
+    @if (TempData["ProfileMsg"] != null)
+    {
+        <div class="alert-success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            @TempData["ProfileMsg"]
+        </div>
+    }
+
+    <div class="profile-card-v4">
+        <div class="avatar-section-v4">
+            <img src="https://ui-avatars.com/api/?name=@Model.Name&background=EBF8FF&color=10517F&size=150" alt="Avatar" class="avatar-img-v4" />
+            <div class="avatar-info-v4">
+                <h3>@Model.Name</h3>
+                <p>@(Model.IsSuperAdmin ? "Super Admin" : "Administrator")</p>
+            </div>
+        </div>
+
+        <form asp-action="Profile" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="IsSuperAdmin" />
+
+            <div class="form-group-v4">
+                <label>Email Address</label>
+                <input type="email" asp-for="Email" class="form-control-v4" readonly />
+                <small style="color:#A0AEC0; margin-top: 0.25rem; display:block;">Email cannot be changed.</small>
+            </div>
+
+            <div class="form-group-v4">
+                <label>Full Name</label>
+                <input type="text" asp-for="Name" class="form-control-v4" required />
+            </div>
+
+            <div class="form-group-v4">
+                <label>New Password (Leave blank to keep current)</label>
+                <input type="password" asp-for="Password" class="form-control-v4" placeholder="Enter new password" value="" />
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn-save-v4">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>

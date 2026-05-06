@@ -1,3 +1,4 @@
+@model cleo.Models.SystemSetting
 @{
     ViewData["Title"] = "System Settings";
     Layout = "_AdminLayout";
@@ -205,163 +206,122 @@
 
     <!-- General Section -->
     <div id="section-general" class="settings-form-v3 settings-section-v3 @(ViewBag.Tab == "general" ? "active" : "")">
-        <h3 class="section-title-v3">General settings</h3>
-        
-        <div class="form-field-v3">
-            <label>Site Name</label>
-            <input type="text" value="Cleo" />
-        </div>
+        <form asp-action="SaveSettings" asp-route-tab="general" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <h3 class="section-title-v3">General settings</h3>
+            
+            <div class="form-field-v3">
+                <label>Site Name</label>
+                <input type="text" asp-for="SiteName" />
+            </div>
 
-        <div class="logo-preview-container-v3">
-            <div class="logo-box-v3">
-                <div class="brand-logo-v3" style="transform: scale(1.5);">
-                    <svg width="40" height="32" viewBox="0 0 40 32" fill="none">
-                        <path d="M20 0C20 0 14 10 14 16C14 22 20 32 20 32C20 32 26 22 26 16C26 10 20 0 20 0Z" fill="#10517F" fill-opacity="0.2"/>
-                        <path d="M20 4C20 4 15 12 15 17C15 22 20 31 20 31C20 31 25 22 25 17C25 12 20 4 20 4Z" fill="#10517F"/>
-                        <path d="M12 8C12 8 4 14 4 19C4 24 10 31 10 31C10 31 18 24 18 19C18 14 12 8 12 8Z" fill="#10517F" fill-opacity="0.4"/>
-                        <path d="M28 8C28 8 36 14 36 19C36 24 30 31 30 31C30 31 22 24 22 19C22 14 28 8 28 8Z" fill="#10517F" fill-opacity="0.4"/>
-                    </svg>
-                    <span style="font-weight: 700; color: #10517F; margin-left: 8px;">CLEO</span>
+            <div class="logo-preview-container-v3">
+                <div class="logo-box-v3">
+                    <div class="brand-logo-v3" style="transform: scale(1.5);">
+                        @if (!string.IsNullOrEmpty(Model.LogoPath))
+                        {
+                            <img src="@Model.LogoPath" alt="Logo" style="height: 40px;" />
+                        }
+                        else
+                        {
+                            <svg width="40" height="32" viewBox="0 0 40 32" fill="none">
+                                <path d="M20 0C20 0 14 10 14 16C14 22 20 32 20 32C20 32 26 22 26 16C26 10 20 0 20 0Z" fill="#10517F" fill-opacity="0.2"/>
+                                <path d="M20 4C20 4 15 12 15 17C15 22 20 31 20 31C20 31 25 22 25 17C25 12 20 4 20 4Z" fill="#10517F"/>
+                                <path d="M12 8C12 8 4 14 4 19C4 24 10 31 10 31C10 31 18 24 18 19C18 14 12 8 12 8Z" fill="#10517F" fill-opacity="0.4"/>
+                                <path d="M28 8C28 8 36 14 36 19C36 24 30 31 30 31C30 31 22 24 22 19C22 14 28 8 28 8Z" fill="#10517F" fill-opacity="0.4"/>
+                            </svg>
+                        }
+                    </div>
+                </div>
+                <div class="form-field-v3">
+                    <label class="btn-change-logo-v3" style="display: inline-flex; align-items: center; cursor: pointer;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        &nbsp;Change Logo
+                        <input type="file" name="logo" accept="image/*" style="display: none;" onchange="this.form.submit()" />
+                    </label>
                 </div>
             </div>
-            <button class="btn-change-logo-v3">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                Change
-            </button>
-        </div>
 
-        <div class="form-field-v3">
-            <label>Support Email</label>
-            <input type="email" value="support@cleo.com" />
-        </div>
+            <div class="form-field-v3">
+                <label>Support Email</label>
+                <input type="email" asp-for="SupportEmail" />
+            </div>
 
-        <div class="form-field-v3">
-            <label>Contact no</label>
-            <input type="text" value="+91 1234567890" />
-        </div>
+            <div class="form-field-v3">
+                <label>Contact no</label>
+                <input type="text" asp-for="ContactNo" />
+            </div>
 
-        <div class="settings-actions-v3">
-            <button class="btn-save-final-v3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                save changes
-            </button>
-        </div>
+            <div class="settings-actions-v3">
+                <button type="submit" class="btn-save-final-v3">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    save changes
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Privacy Section -->
     <div id="section-privacy" class="settings-form-v3 settings-section-v3 @(ViewBag.Tab == "privacy" ? "active" : "")">
-        <h3 class="card-title-v3" style="margin-bottom: 2rem;">Privacy and security</h3>
-        
-
-        <div class="toggle-row-v3">
-            <div class="toggle-info-v3">
-                <h4>Allow New Registrations</h4>
-                <p>Enable/Disable user sign-ups.</p>
+        <form asp-action="SaveSettings" asp-route-tab="privacy" method="post">
+            @Html.AntiForgeryToken()
+            <h3 class="card-title-v3" style="margin-bottom: 2rem;">Privacy and security</h3>
+            
+            <div class="toggle-row-v3">
+                <div class="toggle-info-v3">
+                    <h4>Allow New Registrations</h4>
+                    <p>Enable/Disable user sign-ups.</p>
+                </div>
+                <label class="switch-v3">
+                    <input type="checkbox" asp-for="AllowNewRegistrations">
+                    <span class="slider-v3"></span>
+                </label>
             </div>
-            <label class="switch-v3">
-                <input type="checkbox" checked>
-                <span class="slider-v3"></span>
-            </label>
-        </div>
 
-        <div class="toggle-row-v3">
-            <div class="toggle-info-v3">
-                <h4>Session Timeout</h4>
-                <p>Auto logout idle users after 2h.</p>
+            <div class="toggle-row-v3">
+                <div class="toggle-info-v3">
+                    <h4>Session Timeout</h4>
+                    <p>Auto logout idle users after 2h.</p>
+                </div>
+                <label class="switch-v3">
+                    <input type="checkbox" asp-for="SessionTimeout">
+                    <span class="slider-v3"></span>
+                </label>
             </div>
-            <label class="switch-v3">
-                <input type="checkbox" checked>
-                <span class="slider-v3"></span>
-            </label>
-        </div>
 
-        <div class="settings-actions-v3">
-            <button class="btn-save-v3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Save changes
-            </button>
-        </div>
+            <div class="settings-actions-v3">
+                <button type="submit" class="btn-save-v3">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Save changes
+                </button>
+            </div>
+        </form>
     </div>
 
-    <!-- Content Section -->
-    <div id="section-content" class="settings-form-v3 settings-section-v3 @(ViewBag.Tab == "content" ? "active" : "")">
-        <h3 class="card-title-v3" style="margin-bottom: 2rem;">Content management control</h3>
-        
-        <div class="form-field-v3" style="max-width: 400px; margin-bottom: 1.5rem;">
-            <label>Default Cycle Length</label>
-            <input type="number" value="28" />
-        </div>
 
-        <div class="toggle-row-v3">
-            <div class="toggle-info-v3">
-                <h4>Enable Discussion Display</h4>
-                <p>Show/Hide user comments and discussions.</p>
-            </div>
-            <label class="switch-v3">
-                <input type="checkbox" checked>
-                <span class="slider-v3"></span>
-            </label>
-        </div>
-
-        <div class="toggle-row-v3">
-            <div class="toggle-info-v3">
-                <h4>Show Timer Dashboard</h4>
-                <p>Display cycle timer on user main screen.</p>
-            </div>
-            <label class="switch-v3">
-                <input type="checkbox">
-                <span class="slider-v3"></span>
-            </label>
-        </div>
-
-        <div class="toggle-row-v3">
-            <div class="toggle-info-v3">
-                <h4>Show Cycle Summary Card</h4>
-                <p>Summarized data view for user profiles.</p>
-            </div>
-            <label class="switch-v3">
-                <input type="checkbox">
-                <span class="slider-v3"></span>
-            </label>
-        </div>
-
-        <div class="settings-actions-v3">
-            <button class="btn-save-v3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Save changes
-            </button>
-        </div>
-    </div>
 
     <!-- Data Section -->
     <div id="section-data" class="settings-form-v3 settings-section-v3 @(ViewBag.Tab == "data" ? "active" : "")">
-        <h3 class="card-title-v3" style="margin-bottom: 2rem;">Data management</h3>
-        
-
-        <div class="form-field-v3" style="padding: 1.25rem 0; border-bottom: 1px solid #F1F5F9;">
-            <label>Export User Data</label>
-            <button class="btn-export-v3">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Export CSV File
-            </button>
-        </div>
-
-        <div class="toggle-row-v3">
-            <div class="toggle-info-v3">
-                <h4>Restrict Admin Access to Sensitive Data</h4>
-                <p>Mask user personal details in admin views.</p>
+        <form asp-action="SaveSettings" asp-route-tab="data" method="post">
+            @Html.AntiForgeryToken()
+            <h3 class="card-title-v3" style="margin-bottom: 2rem;">Data management</h3>
+            
+            <div class="form-field-v3" style="padding: 1.25rem 0; border-bottom: 1px solid #F1F5F9;">
+                <label>Export User Data</label>
+                <a asp-action="ExportUsersCsv" class="btn-export-v3" style="text-decoration: none; display: inline-flex;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    &nbsp;Export CSV File
+                </a>
             </div>
-            <label class="switch-v3">
-                <input type="checkbox">
-                <span class="slider-v3"></span>
-            </label>
-        </div>
 
-        <div class="settings-actions-v3">
-            <button class="btn-save-v3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Save changes
-            </button>
-        </div>
+
+
+            <div class="settings-actions-v3">
+                <button type="submit" class="btn-save-v3">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Save changes
+                </button>
+            </div>
+        </form>
     </div>
 </div>
