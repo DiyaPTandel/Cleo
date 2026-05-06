@@ -1,3 +1,4 @@
+@inject cleo.Services.ISettingsService SettingsService
 @{
     var path = Context.Request.Path.Value ?? string.Empty;
     var isHomePage = string.Equals(path, "/", StringComparison.OrdinalIgnoreCase)
@@ -6,12 +7,20 @@
         || string.Equals(path, "/Public/Home", StringComparison.OrdinalIgnoreCase);
     var isLoggedIn = Context.Session.GetString("Role") == "User";
     var userName = Context.Session.GetString("Name") ?? "User";
+    var settings = await SettingsService.GetSettingsAsync();
 }
 
 <nav class="navbar @(isHomePage ? "navbar-home" : "navbar-dashboard")">
     <div class="navbar-container">
         <a class="navbar-logo" asp-controller="Public" asp-action="Home">
-            <img src="~/images/logo.png" alt="cleo logo" class="logo-image" />
+            @if (!string.IsNullOrEmpty(settings.LogoPath))
+            {
+                <img src="@settings.LogoPath" alt="@settings.SiteName logo" class="logo-image" style="height: 40px;" />
+            }
+            else
+            {
+                <img src="~/images/logo.png" alt="cleo logo" class="logo-image" />
+            }
         </a>
 
         <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">

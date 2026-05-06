@@ -1,8 +1,19 @@
+@inject cleo.Services.ISettingsService SettingsService
+@{
+    var settings = await SettingsService.GetSettingsAsync();
+}
 <footer class="footer">
     <div class="footer-container">
         <div class="footer-brand">
             <a class="footer-logo" asp-controller="Public" asp-action="Home">
-                <img src="~/images/logo.png" alt="cleo logo" class="footer-logo-img" />
+                @if (!string.IsNullOrEmpty(settings.LogoPath))
+                {
+                    <img src="@settings.LogoPath" alt="@settings.SiteName logo" class="footer-logo-img" style="height: 30px;" />
+                }
+                else
+                {
+                    <img src="~/images/logo.png" alt="cleo logo" class="footer-logo-img" />
+                }
             </a>
             <p class="footer-motto">Your trusted platform for menstrual health and wellness.</p>
         </div>

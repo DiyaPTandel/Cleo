@@ -1,17 +1,23 @@
-using Microsoft.AspNetCore.Mvc;
 using cleo.Data;
 using cleo.Models;
+using cleo.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace cleo.Controllers;
 
 public class AdminController : Controller
 {
     private readonly CleoDbContext _db;
+    private readonly IWebHostEnvironment _env;
+    private readonly ISettingsService _settings;
 
-    public AdminController(CleoDbContext db)
+    public AdminController(CleoDbContext db, IWebHostEnvironment env, ISettingsService settings)
     {
         _db = db;
+        _env = env;
+        _settings = settings;
     }
 
     [HttpGet]
@@ -37,6 +43,8 @@ public class AdminController : Controller
         ViewBag.Error = "Invalid credentials";
         return View();
     }
+
+
 
     [HttpGet]
     public async Task<IActionResult> Dashboard()
@@ -68,6 +76,24 @@ public class AdminController : Controller
 
         ViewBag.RecentActivity = recentActivity;
 
+        // Calculate User Growth Data (Last 6 months)
+        var months = new List<string>();
+        var counts = new List<int>();
+        var now = DateTime.Now;
+
+        for (int i = 5; i >= 0; i--)
+        {
+            var monthStart = new DateTime(now.Year, now.Month, 1).AddMonths(-i);
+            var monthEnd = monthStart.AddMonths(1);
+            var count = await _db.Users.CountAsync(u => u.JoinDate >= monthStart && u.JoinDate < monthEnd);
+            
+            months.Add(monthStart.ToString("MMM"));
+            counts.Add(count);
+        }
+
+        ViewBag.ChartLabels = months;
+        ViewBag.ChartData = counts;
+
         return View();
     }
 
@@ -84,7 +110,7 @@ public class AdminController : Controller
             BlockedUsers = await _db.Users.CountAsync(u => u.Status == AccountStatus.Blocked)
         };
 
-        ViewBag.UsersList = await _db.Users.ToListAsync();
+        ViewBag.UsersList = await _db.Users.OrderByDescending(u => u.Id).ToListAsync();
         return View();
     }
     
@@ -223,21 +249,110 @@ public class AdminController : Controller
     }
 
     [HttpGet]
-    public IActionResult Settings(string tab = "general")
+    public async Task<IActionResult> Profile()
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+
+        var email = HttpContext.Session.GetString("Email");
+        var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Email == email);
+        if (admin == null) return RedirectToAction(nameof(Login));
+
+        return View(admin);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Profile(AdminMember model)
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+
+        var email = HttpContext.Session.GetString("Email");
+        var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Email == email);
+        if (admin == null) return RedirectToAction(nameof(Login));
+
+        if (ModelState.IsValid)
+        {
+            admin.Name = model.Name;
+            if (!string.IsNullOrEmpty(model.Password))
+            {
+                admin.Password = model.Password;
+            }
+            await _db.SaveChangesAsync();
+            HttpContext.Session.SetString("AdminName", admin.Name);
+            TempData["ProfileMsg"] = "Profile updated successfully.";
+        }
+        
+        return View(admin);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Settings(string tab = "general")
     {
         var guard = EnsureAdminSession();
         if (guard != null) return guard;
 
         ViewBag.Tab = tab.ToLower();
-        ViewBag.Settings = new
-        {
-            SystemName = "CLEO Admin Portal",
-            AdminEmail = "admin@cleo.app",
-            EnableLogs = true,
-            MaintenanceMode = false
-        };
+        var settings = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Id == 1) ?? new SystemSetting { Id = 1 };
 
-        return View();
+        return View(settings);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveSettings(SystemSetting model, IFormFile? logo, string tab = "general")
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+
+        if (ModelState.IsValid)
+        {
+            var existing = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Id == 1);
+            
+            if (logo != null && logo.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "branding");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = "site-logo" + Path.GetExtension(logo.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await logo.CopyToAsync(fileStream);
+                }
+                model.LogoPath = "/uploads/branding/" + fileName;
+            }
+            else if (existing != null)
+            {
+                model.LogoPath = existing.LogoPath;
+            }
+
+            if (existing == null)
+            {
+                model.Id = 1;
+                _db.SystemSettings.Add(model);
+            }
+            else
+            {
+                existing.SiteName = model.SiteName;
+                existing.SupportEmail = model.SupportEmail;
+                existing.ContactNo = model.ContactNo;
+                existing.LogoPath = model.LogoPath;
+                existing.AllowNewRegistrations = model.AllowNewRegistrations;
+                existing.SessionTimeout = model.SessionTimeout;
+                existing.DefaultCycleLength = model.DefaultCycleLength;
+                existing.EnableDiscussionDisplay = model.EnableDiscussionDisplay;
+                existing.ShowTimerDashboard = model.ShowTimerDashboard;
+                existing.ShowCycleSummaryCard = model.ShowCycleSummaryCard;
+                existing.RestrictAdminAccess = model.RestrictAdminAccess;
+            }
+            await _db.SaveChangesAsync();
+            await _settings.RefreshCacheAsync();
+            TempData["AdminMessage"] = "Settings updated successfully.";
+        }
+        return RedirectToAction(nameof(Settings), new { tab });
     }
 
     [HttpPost]
@@ -249,6 +364,25 @@ public class AdminController : Controller
 
         HttpContext.Session.Clear();
         return RedirectToAction(nameof(Login));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportUsersCsv()
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return guard;
+
+        var users = await _db.Users.ToListAsync();
+        var builder = new System.Text.StringBuilder();
+        builder.AppendLine("Id,Name,Email,JoinDate,AgeGroup,CycleLength");
+
+        foreach (var user in users)
+        {
+            builder.AppendLine($"{user.Id},{user.Name},{user.Email},{user.JoinDate:yyyy-MM-dd},{user.AgeGroup},{user.CycleLength}");
+        }
+
+        var csvBytes = System.Text.Encoding.UTF8.GetBytes(builder.ToString());
+        return File(csvBytes, "text/csv", $"Users_Export_{DateTime.Now:yyyyMMdd}.csv");
     }
 
     private IActionResult? EnsureAdminSession()

@@ -4,15 +4,19 @@ using cleo.Data;
 using cleo.Models;
 using Microsoft.EntityFrameworkCore;
 
+using cleo.Services;
+
 namespace cleo.Controllers;
 
 public class PublicController : Controller
 {
     private readonly CleoDbContext _db;
+    private readonly ISettingsService _settings;
 
-    public PublicController(CleoDbContext db)
+    public PublicController(CleoDbContext db, ISettingsService settings)
     {
         _db = db;
+        _settings = settings;
     }
 
     [HttpGet]
@@ -40,12 +44,28 @@ public class PublicController : Controller
     }
 
     [HttpGet]
-    public IActionResult Signup() => View("~/Views/Account/Register.cshtml");
+    public async Task<IActionResult> Signup()
+    {
+        var settings = await _settings.GetSettingsAsync();
+        if (!settings.AllowNewRegistrations)
+        {
+            TempData["RegisterMessage"] = "New registrations are currently disabled by the administrator.";
+            return RedirectToAction(nameof(Login));
+        }
+        return View("~/Views/Account/Register.cshtml");
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Signup(string name, string email, string password, string confirmPassword)
     {
+        var settings = await _settings.GetSettingsAsync();
+        if (!settings.AllowNewRegistrations)
+        {
+            TempData["RegisterMessage"] = "New registrations are currently disabled.";
+            return RedirectToAction(nameof(Login));
+        }
+
         if (string.IsNullOrWhiteSpace(email))
         {
             TempData["RegisterMessage"] = "Email is required.";

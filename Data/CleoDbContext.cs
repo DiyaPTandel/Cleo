@@ -18,6 +18,7 @@ public class CleoDbContext : DbContext
     public DbSet<SymptomLog> SymptomLogs { get; set; } = null!;
     public DbSet<Reminder> Reminders { get; set; } = null!;
     public DbSet<NotificationSetting> NotificationSettings { get; set; } = null!;
+    public DbSet<SystemSetting> SystemSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,6 +30,10 @@ public class CleoDbContext : DbContext
             new AdminMember { Id = 1, Name = "Admin", Email = "admin@cleo.app", Password = "password123", IsSuperAdmin = true },
             new AdminMember { Id = 2, Name = "Diya", Email = "diya@cleo.app", Password = "password123", IsSuperAdmin = true },
             new AdminMember { Id = 3, Name = "Hensy", Email = "hensy@cleo.app", Password = "password123", IsSuperAdmin = true }
+        );
+
+        modelBuilder.Entity<SystemSetting>().HasData(
+            new SystemSetting { Id = 1 }
         );
 
         modelBuilder.Entity<ContentArticle>().HasData(

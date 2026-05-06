@@ -1,9 +1,14 @@
+@inject cleo.Services.ISettingsService SettingsService
+@{
+    var settings = await SettingsService.GetSettingsAsync();
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Admin Panel CLEO</title>
+    <title>@ViewData["Title"] - Admin Panel @settings.SiteName</title>
+    <link rel="icon" type="image/png" href="~/images/logo2.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,12 +31,13 @@
                     </div>
                 </div>
                 <div class="top-header-right">
-                    <button class="nav-icon-btn">🔔</button>
                     <div class="admin-profile-dropdown">
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=EBF8FF&color=10517F" alt="Admin" class="admin-avatar" id="admin-profile-trigger" />
+                        <img src="https://ui-avatars.com/api/?name=@(Context.Session.GetString("AdminName") ?? "Admin")&background=EBF8FF&color=10517F" alt="Admin" class="admin-avatar" id="admin-profile-trigger" />
                         <div class="admin-profile-menu" id="admin-profile-menu">
-                            <a class="admin-dropdown-item" href="#">👤 Profile</a>
-                            <a class="admin-dropdown-item" href="#">🔒 Logout</a>
+                            <a class="admin-dropdown-item" href="/Admin/Profile">👤 Profile</a>
+                            <form asp-controller="Admin" asp-action="Logout" method="post" style="margin:0; padding:0;">
+                                <button type="submit" class="admin-dropdown-item" style="border:none; background:none; width:100%; text-align:left; cursor:pointer;">🔒 Logout</button>
+                            </form>
                         </div>
                     </div>
                 </div>

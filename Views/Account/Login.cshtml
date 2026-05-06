@@ -1,6 +1,8 @@
+@inject cleo.Services.ISettingsService SettingsService
 @{
     Layout = null;
     ViewData["Title"] = "Login";
+    var settings = await SettingsService.GetSettingsAsync();
 }
 
 <!DOCTYPE html>
@@ -8,7 +10,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CLEO</title>
+    <title>@ViewData["Title"] - @settings.SiteName</title>
+    <link rel="icon" type="image/png" href="~/images/logo2.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/variables.css" />
     <link rel="stylesheet" href="~/css/global.css" />
@@ -17,6 +20,18 @@
 </head>
 <body style="margin: 0; padding: 0; background-color: white;">
     <div class="auth-page-v3">
+        @if (TempData["RegisterMessage"] != null)
+        {
+            <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #FEF2F2; border: 1px solid #F87171; color: #991B1B; padding: 12px 24px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); font-weight: 500;">
+                @TempData["RegisterMessage"]
+            </div>
+        }
+        @if (TempData["LoginError"] != null)
+        {
+            <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #FFF7ED; border: 1px solid #FB923C; color: #9A3412; padding: 12px 24px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); font-weight: 500;">
+                @TempData["LoginError"]
+            </div>
+        }
         <!-- Back Navigation Icon -->
         <a asp-controller="Public" asp-action="Home" class="back-nav-v3">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -42,7 +57,7 @@
 
                 <div class="auth-header-v3">
                     <h1>Hello Again!</h1>
-                    <p>Welcome back you have been missed!</p>
+                    <p>Welcome back to @settings.SiteName, you have been missed!</p>
                 </div>
 
                 <form method="post" action="/login" class="auth-form-v3">
