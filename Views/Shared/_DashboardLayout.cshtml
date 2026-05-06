@@ -49,29 +49,33 @@
                 return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
             }
 
-            function hasAlreadyFiredToday() {
+            function hasAlreadyFiredToday(reminderTime) {
                 try {
                     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                    return stored.date === getTodayStr();
+                    return stored.date === getTodayStr() && stored.time === reminderTime;
                 } catch { return false; }
             }
 
-            function markFiredToday() {
+            function markFiredToday(reminderTime) {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                    date: getTodayStr()
+                    date: getTodayStr(),
+                    time: reminderTime
                 }));
             }
 
-            function fireCheckInNotification() {
-                if (Notification.permission !== 'granted') return;
+            function fireCheckInNotification(reminderTime) {
+                if (Notification.permission !== 'granted') {
+                    console.warn("Cleo: Notification permission not granted.");
+                    return;
+                }
                 
-                console.log("Cleo: Firing daily check-in notification.");
+                console.log("Cleo: Firing daily check-in notification for " + reminderTime);
                 new Notification('🌸 Cleo Daily Check-in', {
                     body: 'Time to log your mood, symptoms, and thoughts. Your future self will thank you!',
                     icon: '/images/logo.png',
                     tag: 'cleo-daily-checkin'
                 });
-                markFiredToday();
+                markFiredToday(reminderTime);
             }
 
             function isTimePassed(reminderTime) {
@@ -90,21 +94,21 @@
                 currentReminderTime = reminderTime;
                 if (schedulerInterval) clearInterval(schedulerInterval);
 
-                console.log("Cleo: Scheduler started for " + reminderTime);
+                console.log("Cleo: Scheduler active for " + reminderTime);
 
                 // Check immediately
-                if (!hasAlreadyFiredToday() && isTimePassed(reminderTime)) {
-                    fireCheckInNotification();
+                if (!hasAlreadyFiredToday(reminderTime) && isTimePassed(reminderTime)) {
+                    fireCheckInNotification(reminderTime);
                 }
 
                 schedulerInterval = setInterval(function () {
                     if (!currentReminderTime) return;
-                    if (hasAlreadyFiredToday()) return;
+                    if (hasAlreadyFiredToday(currentReminderTime)) return;
 
                     if (isTimePassed(currentReminderTime)) {
-                        fireCheckInNotification();
+                        fireCheckInNotification(currentReminderTime);
                     }
-                }, 30000); // every 30s
+                }, 15000); // Check every 15s for high precision
             }
 
             async function fetchAndRefresh() {
@@ -128,15 +132,16 @@
             }
 
             async function initCheckInScheduler() {
-                if (!('Notification' in window)) return;
+                if (!('Notification' in window)) {
+                    console.error("Cleo: Browser does not support notifications.");
+                    return;
+                }
                 
-                // If permission is already granted, start polling
-                if (Notification.permission === 'granted') {
-                    await fetchAndRefresh();
-                    setInterval(fetchAndRefresh, 120000);
-                } 
-                // If it's the reminders page, we don't auto-request to avoid interrupting the user's flow
-                // The reminders page has its own "Send Test" button which handles permission.
+                // Start polling immediately, even if permission isn't granted yet.
+                // This ensures that if the user grants permission later (via "Send Test"),
+                // the scheduler is already running and ready to fire.
+                await fetchAndRefresh();
+                setInterval(fetchAndRefresh, 30000); // Poll every 30s for responsiveness
             }
 
             if (document.readyState === 'loading') {
