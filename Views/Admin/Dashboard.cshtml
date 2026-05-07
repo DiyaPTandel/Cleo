@@ -6,19 +6,19 @@
     <link rel="stylesheet" href="~/css/AdminDashboard.css" asp-append-version="true" />
 }
 
-<div class="admin-dashboard-v3">
-    <div class="dashboard-header-v3">
-        <div class="header-info-v3">
-            <h1 class="page-title-v3">Dashboard Overview</h1>
-            <p class="subtitle-v3">Welcome back, here's what's happening with your app today.</p>
+<div class="admin-container-v3">
+    <div class="admin-page-header-v3">
+        <div class="admin-header-info-v3">
+            <h1>Dashboard Overview</h1>
+            <p>Welcome back, here's what's happening with your app today.</p>
         </div>
-        <div class="header-actions-v3">
-            <button class="btn-refresh-v3" onclick="window.location.reload()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <div class="admin-header-actions-v3">
+            <button class="admin-btn-v3 secondary" onclick="window.location.reload()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                 Refresh Data
             </button>
-            <button class="btn-primary-v3" onclick="window.location.href='/Admin/Content'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <button class="admin-btn-v3 primary" onclick="window.location.href='/Admin/Content'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Add Content
             </button>
         </div>
@@ -33,7 +33,7 @@
                 </div>
                 <div class="stat-trend-v3 up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    12.5%
+                    100%
                 </div>
             </div>
             <div class="stat-main-v3">
@@ -49,7 +49,7 @@
                 </div>
                 <div class="stat-trend-v3 up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    5.2%
+                    100%
                 </div>
             </div>
             <div class="stat-main-v3">
@@ -63,14 +63,14 @@
                 <div class="stat-icon-v3 blue-v3">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 </div>
-                <div class="stat-trend-v3 down">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    2.1%
+                <div class="stat-trend-v3 up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    100%
                 </div>
             </div>
             <div class="stat-main-v3">
-                <span class="stat-label-v3">Period Logs</span>
-                <h2 class="stat-value-v3">@ViewBag.Stats.CyclesLogged</h2>
+                <span class="stat-label-v3">Monthly Signups</span>
+                <h2 class="stat-value-v3">@ViewBag.Stats.TotalUsers</h2>
             </div>
         </div>
 
@@ -79,11 +79,13 @@
                 <div class="stat-icon-v3 green-v3">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </div>
-                <div class="stat-trend-v3 neutral">Today</div>
+                <div class="stat-trend-v3 neutral">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
             </div>
             <div class="stat-main-v3">
-                <span class="stat-label-v3">System Health</span>
-                <h2 class="stat-value-v3">@ViewBag.Stats.SystemHealth</h2>
+                <span class="stat-label-v3">Avg Cycle Length</span>
+                <h2 class="stat-value-v3">28.5 days</h2>
             </div>
         </div>
     </div>
@@ -91,121 +93,240 @@
     <!-- Main Dashboard Row -->
     <div class="dashboard-row-v3">
         <div class="chart-column-v3">
-            <div class="content-card-v3">
+            <div class="content-card-v3" style="height: 100%;">
                 <div class="card-header-v3">
-                    <h3 class="card-title-v3">User Growth</h3>
-                    <div class="card-options-v3">Total Users : @ViewBag.Stats.TotalUsers <span class="trend-percent-v3 up">+12.5%</span></div>
+                    <div>
+                        <h3 class="card-title-v3">User Growth</h3>
+                        <div class="card-options-v3" style="margin-top: 0.25rem;">Total Users : @ViewBag.Stats.TotalUsers <span class="trend-percent-v3 up">+100%</span> vs last 14 days</div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; text-align: right;">
+                        <div>
+                            <div style="font-size: 0.65rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">New Today</div>
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #1E293B;">+0</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.65rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Active (7d)</div>
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #1E293B;">@ViewBag.Stats.ActiveUsers</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="chart-container-v3" style="position: relative; height: 220px; width: 100%;">
+                <div class="chart-container-v3" style="position: relative; height: 260px; width: 100%;">
                     <canvas id="userGrowthChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const ctx = document.getElementById('userGrowthChart').getContext('2d');
-                
-                // Get data from ViewBag
-                const labels = @Html.Raw(Json.Serialize(ViewBag.ChartLabels));
-                const data = @Html.Raw(Json.Serialize(ViewBag.ChartData));
-
-                const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
-                gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'User Growth',
-                            data: data,
-                            borderColor: '#8B5CF6',
-                            borderWidth: 3,
-                            fill: true,
-                            backgroundColor: gradient,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#8B5CF6',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointHoverRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#1e293b',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                padding: 12,
-                                cornerRadius: 8,
-                                displayColors: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: '#f1f5f9' },
-                                ticks: { 
-                                    color: '#64748b',
-                                    font: { size: 11 },
-                                    stepSize: 1
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { 
-                                    color: '#64748b',
-                                    font: { size: 11 }
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        </script>
-
-        <div class="activity-column-v3">
-            <div class="content-card-v3">
+        <div class="insights-column-v3">
+            <div class="content-card-v3" style="height: 100%;">
                 <div class="card-header-v3">
-                    <h3 class="card-title-v3">Recent User Activity</h3>
-                    <a href="#" class="view-all-v3">View All</a>
+                    <div>
+                        <h3 class="card-title-v3">Activity Insights</h3>
+                        <div class="card-options-v3" style="margin-top: 0.25rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Overall Breakdown</div>
+                    </div>
+                    <div class="total-logs-badge-v3">
+                        <span class="total-logs-count-v3">@ViewBag.Stats.TotalLogs</span>
+                        <span class="total-logs-label-v3">Total Logs</span>
+                    </div>
                 </div>
-                <div class="activity-table-container-v3">
-                    <table class="activity-table-v3">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>ID</th>
-                                <th>Status</th>
-                                <th>Last Active</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var activity in ViewBag.RecentActivity)
-                            {
-                                <tr>
-                                    <td>
-                                        <div class="user-cell-v3">
-                                            <img src="https://ui-avatars.com/api/?name=@activity.User&background=random" alt="User" class="user-avatar-v3" />
-                                            <span>@activity.User</span>
-                                        </div>
-                                    </td>
-                                    <td>#CLO-@activity.User.Substring(0, 3).ToUpper()</td>
-                                    <td><span class="status-badge-v3 online">Online</span></td>
-                                    <td>@activity.Time</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                
+                <div class="activity-insights-list-v3">
+                    <div class="insight-item-v3">
+                        <div class="insight-label-v3">
+                            <span class="small-logs-v3">LOGS</span>
+                            <span class="bold-type-v3">PERIODS</span>
+                        </div>
+                        <div class="insight-bar-container-v3">
+                            <div class="insight-bar-v3 periods" data-width="@(ViewBag.Stats.TotalLogs > 0 ? (ViewBag.ActivityInsights.Periods * 100 / ViewBag.Stats.TotalLogs) : 0)%">
+                                <span class="insight-count-inside-v3">@ViewBag.ActivityInsights.Periods</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item-v3">
+                        <div class="insight-label-v3">
+                            <span class="small-logs-v3">LOGS</span>
+                            <span class="bold-type-v3">MOODS</span>
+                        </div>
+                        <div class="insight-bar-container-v3">
+                            <div class="insight-bar-v3 moods" data-width="@(ViewBag.Stats.TotalLogs > 0 ? (ViewBag.ActivityInsights.Moods * 100 / ViewBag.Stats.TotalLogs) : 0)%">
+                                <span class="insight-count-inside-v3">@ViewBag.ActivityInsights.Moods</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item-v3">
+                        <div class="insight-label-v3">
+                            <span class="small-logs-v3">LOGS</span>
+                            <span class="bold-type-v3">SYMPTOMS</span>
+                        </div>
+                        <div class="insight-bar-container-v3">
+                            <div class="insight-bar-v3 symptoms" data-width="@(ViewBag.Stats.TotalLogs > 0 ? (ViewBag.ActivityInsights.Symptoms * 100 / ViewBag.Stats.TotalLogs) : 0)%">
+                                <span class="insight-count-inside-v3">@ViewBag.ActivityInsights.Symptoms</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item-v3">
+                        <div class="insight-label-v3">
+                            <span class="small-logs-v3">LOGS</span>
+                            <span class="bold-type-v3">NOTES</span>
+                        </div>
+                        <div class="insight-bar-container-v3">
+                            <div class="insight-bar-v3 notes" data-width="@(ViewBag.Stats.TotalLogs > 0 ? (ViewBag.ActivityInsights.Notes * 100 / ViewBag.Stats.TotalLogs) : 0)%">
+                                <span class="insight-count-inside-v3">@ViewBag.ActivityInsights.Notes</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Recent Activity Row -->
+    <div class="dashboard-footer-row-v3">
+        <div class="content-card-v3">
+            <div class="card-header-v3">
+                <div>
+                    <h3 class="card-title-v3">Recent User Activity</h3>
+                    <p class="subtitle-v3" style="margin-top: 0.25rem;">Latest user interactions from all logs</p>
+                </div>
+                <a id="viewAllActivity" class="view-all-v3">View All</a>
+            </div>
+            <div class="activity-table-container-v3">
+                <table class="activity-table-v3">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody">
+                        @for (int i = 0; i < ViewBag.RecentActivity.Count; i++)
+                        {
+                            var activity = ViewBag.RecentActivity[i];
+                            <tr class="activity-row-v3 @(i >= 5 ? "hidden-row-v3" : "")" style="@(i >= 5 ? "display: none;" : "")">
+                                <td>
+                                    <div class="user-cell-v3">
+                                        <div class="user-avatar-v3" style="background-color: #F1F5F9; color: #10517F; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
+                                            @activity.User.Substring(0, 1)
+                                        </div>
+                                        <div>
+                                            <span style="display: block;">@activity.User</span>
+                                            <span class="user-email-v3">@activity.Email</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@activity.Action</td>
+                                <td>@activity.Time</td>
+                                <td><span class="status-badge-v3 active">@activity.Status</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- User Growth Chart ---
+        const ctx = document.getElementById('userGrowthChart').getContext('2d');
+        const labels = @Html.Raw(Json.Serialize(ViewBag.ChartLabels));
+        const data = @Html.Raw(Json.Serialize(ViewBag.ChartData));
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'User Growth',
+                    data: data,
+                    borderColor: '#8B5CF6',
+                    borderWidth: 3,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#8B5CF6',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#fff',
+                        titleColor: '#64748B',
+                        bodyColor: '#1E293B',
+                        bodyFont: { weight: '800' },
+                        padding: 12,
+                        cornerRadius: 10,
+                        displayColors: false,
+                        borderColor: '#F1F5F9',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return 'users : ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9', borderDash: [5, 5], drawBorder: false },
+                        ticks: { 
+                            color: '#94A3B8', 
+                            font: { size: 10, weight: '600' },
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: { display: true, color: '#f1f5f9', borderDash: [5, 5], drawBorder: false },
+                        ticks: { color: '#94A3B8', font: { size: 10, weight: '600' } }
+                    }
+                }
+            }
+        });
+
+        // --- Animate Insight Bars ---
+        setTimeout(() => {
+            document.querySelectorAll('.insight-bar-v3').forEach(bar => {
+                bar.style.width = bar.getAttribute('data-width');
+            });
+        }, 300);
+
+        // --- View All Activity Toggle ---
+        const viewAllBtn = document.getElementById('viewAllActivity');
+        const hiddenRows = document.querySelectorAll('.hidden-row-v3');
+        let isExpanded = false;
+
+        viewAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            isExpanded = !isExpanded;
+            
+            hiddenRows.forEach(row => {
+                row.style.display = isExpanded ? 'table-row' : 'none';
+            });
+            
+            this.textContent = isExpanded ? 'View Less' : 'View All';
+        });
+    });
+</script>
 </div>

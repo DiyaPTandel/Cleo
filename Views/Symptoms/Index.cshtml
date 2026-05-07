@@ -3,9 +3,18 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/LogSymptoms.css" />
+    <link rel="stylesheet" href="~/css/AIEnhancements.css" />
 }
 
 <div class="symptom-logger-page-v3">
+    <!-- AI Loading Overlay -->
+    <div id="aiLoader" class="ai-loading-overlay">
+        <div class="ai-loader-content">
+            <span class="ai-pulse-icon">✨</span>
+            <p class="ai-loading-text">Cleo is thinking...</p>
+        </div>
+    </div>
+
     <!-- Header with Back Arrow -->
     <div class="symptom-header-v3">
         <a asp-controller="Dashboard" asp-action="Index" class="back-link-v3">
@@ -19,7 +28,23 @@
         </div>
     </div>
 
-    <form method="post" action="/Dashboard/LogSymptoms" class="symptom-form-v3">
+    @if (TempData["AITip"] != null)
+    {
+        <div class="ai-suggestion-wrapper-v3">
+            <div class="ai-suggestion-card-v3">
+                <div class="ai-badge-v3">
+                    <span class="ai-icon-v3">✨</span>
+                    <span class="badge-text-v3">AI Insight</span>
+                </div>
+                <div class="suggestion-content-v3">
+                    <p>@TempData["AITip"]</p>
+                </div>
+                <div class="card-glow-v3"></div>
+            </div>
+        </div>
+    }
+
+    <form id="symptomForm" method="post" action="/Dashboard/LogSymptoms" class="symptom-form-v3">
         @Html.AntiForgeryToken()
         <input type="hidden" name="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
 
@@ -102,18 +127,10 @@
     {
         <p class="status-msg-v3">@TempData["SymptomsMessage"]</p>
     }
-
-    @if (TempData["AITip"] != null)
-    {
-        <div class="ai-suggestion-card-v3 animate-fade-in">
-            <div class="ai-badge-v3">
-                <span class="ai-icon-v3">✨</span>
-                <span class="badge-text-v3">AI Suggestion</span>
-            </div>
-            <div class="suggestion-content-v3">
-                <p>@TempData["AITip"]</p>
-            </div>
-            <div class="card-glow-v3"></div>
-        </div>
-    }
 </div>
+
+<script>
+    document.getElementById('symptomForm').addEventListener('submit', function() {
+        document.getElementById('aiLoader').style.display = 'flex';
+    });
+</script>

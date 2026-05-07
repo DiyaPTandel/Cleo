@@ -53,46 +53,85 @@ public class AdminController : Controller
         if (guard != null) return guard;
 
         ViewBag.AdminEmail = HttpContext.Session.GetString("Email") ?? "admin@cleo.app";
+        
+        var totalUsers = await _db.Users.CountAsync();
+        var activeUsers = await _db.Users.CountAsync(u => u.Status == AccountStatus.Active);
+        var cyclesLogged = await _db.CycleTracks.CountAsync();
+        var moodsLogged = await _db.MoodNotes.CountAsync();
+        var symptomsLogged = await _db.SymptomLogs.CountAsync();
+        
         ViewBag.Stats = new
         {
-            TotalUsers = await _db.Users.CountAsync(),
-            ActiveUsers = await _db.Users.CountAsync(u => u.Status == AccountStatus.Active),
-            CyclesLogged = await _db.CycleTracks.CountAsync(),
+            TotalUsers = totalUsers,
+            ActiveUsers = activeUsers,
+            CyclesLogged = cyclesLogged,
+            MoodsLogged = moodsLogged,
+            SymptomsLogged = symptomsLogged,
             SystemHealth = "98%",
-            StorageUsed = "42%"
+            TotalLogs = cyclesLogged + moodsLogged + symptomsLogged
         };
 
-        var latestUsers = await _db.Users.OrderByDescending(u => u.Id).Take(3).ToListAsync();
-        var recentActivity = latestUsers.Select(u => new { 
-            User = u.Name, 
-            Action = "Joined CLEO", 
-            Time = u.JoinDate.ToString("MMM dd, yyyy") 
-        }).ToList();
+        // Activity Insights Data
+        ViewBag.ActivityInsights = new
+        {
+            Periods = cyclesLogged,
+            Moods = moodsLogged,
+            Symptoms = symptomsLogged,
+            Notes = await _db.MoodNotes.CountAsync(m => !string.IsNullOrEmpty(m.Note))
+        };
+
+        // Aggregated Recent Activity
+        var latestPeriods = await _db.CycleTracks
+            .Join(_db.Users, p => p.UserId, u => u.Id, (p, u) => new { p, u })
+            .OrderByDescending(x => x.p.Id)
+            .Take(5)
+            .ToListAsync();
+
+        var latestMoods = await _db.MoodNotes
+            .Join(_db.Users, m => m.UserId, u => u.Id, (m, u) => new { m, u })
+            .OrderByDescending(x => x.m.Id)
+            .Take(5)
+            .ToListAsync();
+        var latestSymptoms = await _db.SymptomLogs
+            .Join(_db.Users, s => s.UserId, u => u.Id, (s, u) => new { s, u })
+            .OrderByDescending(x => x.s.Id)
+            .Take(5)
+            .ToListAsync();
         
-        if (!recentActivity.Any())
+        var aggregatedActivity = latestPeriods.Select(p => new {
+            User = p.u.Name,
+            Email = p.u.Email,
+            Action = "Logged a new period",
+            Time = "Recent",
+            Status = p.u.Status.ToString()
+        }).Concat(latestMoods.Select(m => new {
+            User = m.u.Name,
+            Email = m.u.Email,
+            Action = "Added a mood entry",
+            Time = "Recent",
+            Status = m.u.Status.ToString()
+        })).Concat(latestSymptoms.Select(s => new {
+            User = s.u.Name,
+            Email = s.u.Email,
+            Action = "Logged symptoms",
+            Time = "Recent",
+            Status = s.u.Status.ToString()
+        })).OrderByDescending(a => a.Time).Take(10).ToList();
+
+        ViewBag.RecentActivity = aggregatedActivity;
+        
+        // Growth Chart Data (last 7 days)
+        var chartLabels = new List<string>();
+        var chartData = new List<int>();
+        for (int i = 6; i >= 0; i--)
         {
-            recentActivity.Add(new { User = "System", Action = "DB Initialized", Time = "10 mins ago" });
+            var date = DateTime.Today.AddDays(-i);
+            chartLabels.Add(date.ToString("MMM dd"));
+            var count = await _db.Users.CountAsync(u => u.JoinDate.Date <= date.Date);
+            chartData.Add(count);
         }
-
-        ViewBag.RecentActivity = recentActivity;
-
-        // Calculate User Growth Data (Last 6 months)
-        var months = new List<string>();
-        var counts = new List<int>();
-        var now = DateTime.Now;
-
-        for (int i = 5; i >= 0; i--)
-        {
-            var monthStart = new DateTime(now.Year, now.Month, 1).AddMonths(-i);
-            var monthEnd = monthStart.AddMonths(1);
-            var count = await _db.Users.CountAsync(u => u.JoinDate >= monthStart && u.JoinDate < monthEnd);
-            
-            months.Add(monthStart.ToString("MMM"));
-            counts.Add(count);
-        }
-
-        ViewBag.ChartLabels = months;
-        ViewBag.ChartData = counts;
+        ViewBag.ChartLabels = chartLabels;
+        ViewBag.ChartData = chartData;
 
         return View();
     }
@@ -140,19 +179,46 @@ public class AdminController : Controller
     
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddUser(string name, string email, string password)
+    {
+        var guard = EnsureAdminSession();
+        if (guard != null) return Json(new { success = false, message = "Unauthorized" });
+
+        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            return Json(new { success = false, message = "All fields are required" });
+
+        if (await _db.Users.AnyAsync(u => u.Email == email))
+            return Json(new { success = false, message = "Email already registered" });
+
+        var user = new UserAccount
+        {
+            Name = name,
+            Email = email,
+            Password = password,
+            JoinDate = DateTime.UtcNow,
+            Status = AccountStatus.Active
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+        return Json(new { success = true, message = "User added successfully!" });
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> BlockUser(int id)
     {
         var guard = EnsureAdminSession();
-        if (guard != null) return guard;
+        if (guard != null) return Json(new { success = false, message = "Unauthorized" });
         
         var user = await _db.Users.FindAsync(id);
         if (user != null)
         {
             user.Status = (user.Status == AccountStatus.Blocked) ? AccountStatus.Active : AccountStatus.Blocked;
             await _db.SaveChangesAsync();
-            TempData["AdminMessage"] = $"User status changed to {user.Status}!";
+            return Json(new { success = true, message = $"User status changed to {user.Status}!" });
         }
-        return RedirectToAction(nameof(Users));
+        return Json(new { success = false, message = "User not found" });
     }
     
     [HttpPost]
@@ -160,16 +226,16 @@ public class AdminController : Controller
     public async Task<IActionResult> DeleteUser(int id)
     {
         var guard = EnsureAdminSession();
-        if (guard != null) return guard;
+        if (guard != null) return Json(new { success = false, message = "Unauthorized" });
         
         var user = await _db.Users.FindAsync(id);
         if (user != null)
         {
             _db.Users.Remove(user);
             await _db.SaveChangesAsync();
-            TempData["AdminMessage"] = "User deleted successfully!";
+            return Json(new { success = true, message = "User deleted successfully!" });
         }
-        return RedirectToAction(nameof(Users));
+        return Json(new { success = false, message = "User not found" });
     }
 
 
@@ -199,12 +265,12 @@ public class AdminController : Controller
     public async Task<IActionResult> EditArticle(ContentArticle model)
     {
         var guard = EnsureAdminSession();
-        if (guard != null) return guard;
+        if (guard != null) return Json(new { success = false, message = "Unauthorized" });
         
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return Json(new { success = false, message = "Invalid data provided" });
         
         var existing = await _db.Articles.FindAsync(model.Id);
-        if (existing == null) return NotFound();
+        if (existing == null) return Json(new { success = false, message = "Article not found" });
         
         existing.Title = model.Title;
         existing.Category = model.Category;
@@ -212,8 +278,7 @@ public class AdminController : Controller
         existing.Status = model.Status;
         
         await _db.SaveChangesAsync();
-        TempData["AdminMessage"] = "Article updated successfully!";
-        return RedirectToAction(nameof(Content));
+        return Json(new { success = true, message = "Article updated successfully!" });
     }
     
     [HttpPost]
@@ -221,16 +286,16 @@ public class AdminController : Controller
     public async Task<IActionResult> DeleteArticle(int id)
     {
         var guard = EnsureAdminSession();
-        if (guard != null) return guard;
+        if (guard != null) return Json(new { success = false, message = "Unauthorized" });
         
         var article = await _db.Articles.FindAsync(id);
         if (article != null)
         {
             _db.Articles.Remove(article);
             await _db.SaveChangesAsync();
-            TempData["AdminMessage"] = "Article deleted successfully!";
+            return Json(new { success = true, message = "Article deleted successfully!" });
         }
-        return RedirectToAction(nameof(Content));
+        return Json(new { success = false, message = "Article not found" });
     }
 
     [HttpPost]
@@ -238,14 +303,23 @@ public class AdminController : Controller
     public async Task<IActionResult> AddArticle(string title, string category, string content)
     {
         var guard = EnsureAdminSession();
-        if (guard != null) return guard;
+        if (guard != null) return Json(new { success = false, message = "Unauthorized" });
 
-        if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content))
+        if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(content))
+            return Json(new { success = false, message = "Title and Content are required" });
+
+        var article = new ContentArticle
         {
-            _db.Articles.Add(new ContentArticle { Title = title, Category = category ?? "General", Content = content });
-            await _db.SaveChangesAsync();
-        }
-        return RedirectToAction(nameof(Content));
+            Title = title,
+            Category = string.IsNullOrEmpty(category) ? "General" : category,
+            Content = content,
+            Status = "Published",
+            PublishDate = DateTime.UtcNow
+        };
+
+        _db.Articles.Add(article);
+        await _db.SaveChangesAsync();
+        return Json(new { success = true, message = "Article added successfully!" });
     }
 
     [HttpGet]

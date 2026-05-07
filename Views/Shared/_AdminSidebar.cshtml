@@ -79,15 +79,20 @@
         <div class="sidebar-users-section">
             <div style="font-size: 0.75rem; font-weight: 600; color: #94A3B8; margin-bottom: 0.75rem; padding: 0 0.25rem;">Most active users</div>
             <div class="sidebar-user-list">
-                <div class="sidebar-user-item">
-                    <span class="status-dot-v3 red"></span> Hensy Patel
-                </div>
-                <div class="sidebar-user-item">
-                    <span class="status-dot-v3 blue"></span> Ridhdhi Raval
-                </div>
-                <div class="sidebar-user-item">
-                    <span class="status-dot-v3 purple"></span> Komal Mishra
-                </div>
+                @inject cleo.Data.CleoDbContext Db
+                @{
+                    var topUsers = await Db.Users
+                        .OrderByDescending(u => u.TotalMinutesSpent)
+                        .Take(3)
+                        .ToListAsync();
+                    var colors = new[] { "red", "blue", "purple" };
+                }
+                @for (int i = 0; i < topUsers.Count; i++)
+                {
+                    <div class="sidebar-user-item">
+                        <span class="status-dot-v3 @colors[i % colors.Length]"></span> @topUsers[i].Name
+                    </div>
+                }
             </div>
         </div>
 

@@ -176,14 +176,42 @@ public class DashboardController : Controller
         ViewBag.Symptoms = await _db.SymptomLogs.Where(s => s.UserId == userId).Take(3).Select(s => s.Symptoms).ToListAsync();
         var lastMood = await _db.MoodNotes.Where(m => m.UserId == userId).OrderByDescending(m => m.Date).FirstOrDefaultAsync();
         ViewBag.Mood = lastMood?.Mood ?? "Not set";
-        ViewBag.Notes = await _db.MoodNotes.Where(m => m.UserId == userId).OrderByDescending(m => m.Date).Take(3).Select(n => n.Note).ToListAsync();
+        // Combined Recent Notes (Mood + Symptoms)
+        var moodNotes = await _db.MoodNotes
+            .Where(m => m.UserId == userId)
+            .OrderByDescending(m => m.Date)
+            .Take(5)
+            .Select(m => new { Content = m.Note ?? "No notes", Date = m.Date, Type = "Mood" })
+            .ToListAsync();
+            
+        var symptomLogs = await _db.SymptomLogs
+            .Where(s => s.UserId == userId)
+            .OrderByDescending(s => s.Date)
+            .Take(5)
+            .ToListAsync();
+            
+        var allNotes = moodNotes.Select(n => new { n.Content, n.Date, n.Type })
+            .Concat(symptomLogs.Select(s => new { Content = s.Notes ?? "No notes", Date = DateTime.TryParse(s.Date, out var d) ? d : DateTime.MinValue, Type = "Symptom" }))
+            .OrderByDescending(n => n.Date)
+            .Take(4)
+            .ToList();
+
+        ViewBag.Notes = allNotes;
 
         // Upcoming Reminders
         ViewBag.UpcomingReminders = await _db.Reminders
             .Where(r => r.UserId == userId && r.ReminderDate >= DateTime.UtcNow.Date)
             .OrderBy(r => r.ReminderDate)
-            .Take(3)
+            .Take(5)
             .ToListAsync();
+
+        // Dynamic Health Tip
+        var allArticles = await _db.Articles.ToListAsync();
+        if (allArticles.Any())
+        {
+            var random = new Random();
+            ViewBag.HealthTip = allArticles[random.Next(allArticles.Count)];
+        }
 
         return View("~/Views/Dashboard/Index.cshtml");
     }
@@ -278,7 +306,7 @@ public class DashboardController : Controller
         await _reminderService.UpdateLastActivityAsync(userId.Value);
 
         TempData["SymptomsMessage"] = "Symptoms logged to your profile!";
-        TempData["Tips"] = tip;
+        TempData["AITip"] = tip;
         return RedirectToAction(nameof(LogSymptoms));
     }
 
@@ -762,6 +790,22 @@ public class DashboardController : Controller
 
         TempData["PassMessage"] = "Password updated successfully.";
         return RedirectToAction(nameof(ChangePassword));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Heartbeat()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return Unauthorized();
+
+        var user = await _db.Users.FindAsync(userId.Value);
+        if (user != null)
+        {
+            user.TotalMinutesSpent += 1;
+            user.LastActivityDate = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+        return Ok();
     }
 
     private T? GetSessionObject<T>(string key)

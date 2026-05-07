@@ -3,9 +3,18 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/Mood.css" />
+    <link rel="stylesheet" href="~/css/AIEnhancements.css" />
 }
 
 <div class="mood-page-v3">
+    <!-- AI Loading Overlay -->
+    <div id="aiLoader" class="ai-loading-overlay">
+        <div class="ai-loader-content">
+            <span class="ai-pulse-icon">✨</span>
+            <p class="ai-loading-text">Cleo is thinking...</p>
+        </div>
+    </div>
+
     <!-- Header with Back Arrow -->
     <div class="mood-header-v3">
         <a asp-controller="Dashboard" asp-action="Index" class="back-link-v3">
@@ -21,19 +30,21 @@
 
     @if (TempData["AITip"] != null)
     {
-        <div class="ai-suggestion-card-v3 animate-fade-in">
-            <div class="ai-badge-v3">
-                <span class="ai-icon-v3">✨</span>
-                <span class="badge-text-v3">AI Suggestion</span>
+        <div class="ai-suggestion-wrapper-v3">
+            <div class="ai-suggestion-card-v3">
+                <div class="ai-badge-v3">
+                    <span class="ai-icon-v3">✨</span>
+                    <span class="badge-text-v3">AI Insight</span>
+                </div>
+                <div class="suggestion-content-v3">
+                    <p>@TempData["AITip"]</p>
+                </div>
+                <div class="card-glow-v3"></div>
             </div>
-            <div class="suggestion-content-v3">
-                <p>@TempData["AITip"]</p>
-            </div>
-            <div class="card-glow-v3"></div>
         </div>
     }
 
-    <form method="post" action="/Dashboard/LogMood" class="mood-form-v3">
+    <form id="moodForm" method="post" action="/Dashboard/LogMood" class="mood-form-v3">
         @Html.AntiForgeryToken()
 
         <!-- Card 1: How's your mood today? -->
@@ -160,3 +171,9 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('moodForm').addEventListener('submit', function() {
+        document.getElementById('aiLoader').style.display = 'flex';
+    });
+</script>

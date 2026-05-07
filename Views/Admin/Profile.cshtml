@@ -125,10 +125,12 @@
     }
 </style>
 
-<div class="admin-profile-v4">
-    <div class="profile-header-v4">
-        <h1>Admin Profile</h1>
-        <p>Manage your account settings and personal information.</p>
+<div class="admin-container-v3">
+    <div class="admin-page-header-v3">
+        <div class="admin-header-info-v3">
+            <h1>Admin Profile</h1>
+            <p>Manage your account settings and personal information</p>
+        </div>
     </div>
 
     @if (TempData["ProfileMsg"] != null)
@@ -139,12 +141,12 @@
         </div>
     }
 
-    <div class="profile-card-v4">
-        <div class="avatar-section-v4">
-            <img src="https://ui-avatars.com/api/?name=@Model.Name&background=EBF8FF&color=10517F&size=150" alt="Avatar" class="avatar-img-v4" />
-            <div class="avatar-info-v4">
-                <h3>@Model.Name</h3>
-                <p>@(Model.IsSuperAdmin ? "Super Admin" : "Administrator")</p>
+    <div class="admin-card-v3" style="max-width: 800px;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; padding-bottom: 2rem; border-bottom: 1px solid #F1F5F9; margin-bottom: 2rem;">
+            <img src="https://ui-avatars.com/api/?name=@Model.Name&background=F3E8FF&color=8B5CF6&size=150" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />
+            <div>
+                <h3 style="margin: 0; font-size: 1.25rem; color: #0F172A;">@Model.Name</h3>
+                <p style="margin: 0.25rem 0 0; color: #64748B; font-size: 0.9rem; font-weight: 500;">@(Model.IsSuperAdmin ? "Super Admin" : "Administrator")</p>
             </div>
         </div>
 
@@ -153,24 +155,23 @@
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="IsSuperAdmin" />
 
-            <div class="form-group-v4">
-                <label>Email Address</label>
-                <input type="email" asp-for="Email" class="form-control-v4" readonly />
-                <small style="color:#A0AEC0; margin-top: 0.25rem; display:block;">Email cannot be changed.</small>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Email Address</label>
+                <input type="email" asp-for="Email" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #E2E8F0; border-radius: 10px; background-color: #F8FAFC; color: #64748B;" readonly />
             </div>
 
-            <div class="form-group-v4">
-                <label>Full Name</label>
-                <input type="text" asp-for="Name" class="form-control-v4" required />
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Full Name</label>
+                <input type="text" asp-for="Name" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #E2E8F0; border-radius: 10px;" required />
             </div>
 
-            <div class="form-group-v4">
-                <label>New Password (Leave blank to keep current)</label>
-                <input type="password" asp-for="Password" class="form-control-v4" placeholder="Enter new password" value="" />
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">New Password</label>
+                <input type="password" asp-for="Password" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #E2E8F0; border-radius: 10px;" placeholder="Leave blank to keep current" value="" />
             </div>
 
-            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                <button type="submit" class="btn-save-v4">Save Changes</button>
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="submit" class="admin-btn-v3 primary">Save Changes</button>
             </div>
         </form>
     </div>

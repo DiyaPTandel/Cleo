@@ -1,69 +1,86 @@
 using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace cleo.Services;
 
 public class AIService : IAIService
 {
-    public Task<string> GetSymptomTipAsync(List<string> symptoms, string? notes)
+    private readonly IConfiguration _config;
+    private readonly HttpClient _httpClient;
+
+    public AIService(IConfiguration config)
     {
-        if (symptoms == null || !symptoms.Any())
-        {
-            return Task.FromResult("Keep tracking your symptoms to get personalized insights!");
-        }
-
-        var sb = new StringBuilder();
-        sb.Append("Based on your symptoms: ");
-
-        foreach (var symptom in symptoms)
-        {
-            switch (symptom.ToLower())
-            {
-                case "cramps":
-                    sb.Append("Try a warm compress or a heating pad to relax your muscles. ");
-                    break;
-                case "bloating":
-                    sb.Append("Reducing salt intake and staying hydrated can help with bloating. ");
-                    break;
-                case "headache":
-                    sb.Append("Ensure you're getting enough rest and staying hydrated. ");
-                    break;
-                case "fatigue":
-                    sb.Append("Listen to your body and prioritize extra sleep today. ");
-                    break;
-                case "anxiety":
-                    sb.Append("Try some deep breathing exercises or gentle meditation. ");
-                    break;
-                case "mood swings":
-                    sb.Append("Be kind to yourself; hormonal shifts can affect your emotions. ");
-                    break;
-                case "high energy":
-                    sb.Append("This is a great time for more intense workouts! ");
-                    break;
-                case "increased appetite":
-                    sb.Append("Focus on nutrient-dense meals with fiber and protein. ");
-                    break;
-            }
-        }
-
-        if (!string.IsNullOrEmpty(notes))
-        {
-            sb.Append("Regarding your notes, remember that tracking these details helps identify patterns over time.");
-        }
-
-        return Task.FromResult(sb.ToString().Trim());
+        _config = config;
+        _httpClient = new HttpClient();
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", "CleoHealthApp/1.0");
     }
 
-    public Task<string> GetMoodTipAsync(string mood, string? description)
+    public async Task<string> GetSymptomTipAsync(List<string> symptoms, string? notes)
     {
-        string tip = mood.ToLower() switch
-        {
-            "happy" or "energetic" or "calm" => "It's great that you're feeling good! Capture this positive energy and perhaps try something creative today.",
-            "sad" or "depressed" or "low" => "It's okay to have low days. Try to do one small thing that brings you comfort, like listening to your favorite music or a short walk.",
-            "stressed" or "anxious" or "irritable" => "Take a moment to breathe. A 5-minute mindfulness session could help ground you.",
-            "tired" or "exhausted" => "Your body needs rest. Aim for an earlier bedtime tonight if possible.",
-            _ => "Tracking your mood is a great step toward emotional well-of being. Notice if any specific activities affect how you feel."
-        };
+        if (symptoms == null || !symptoms.Any()) return GetFallbackSymptomTip(symptoms, notes);
+        
+        string prompt = $"As a health assistant, provide a short, helpful tip (max 2 sentences) for: {string.Join(", ", symptoms)}. Notes: {notes ?? "none"}. Focus on natural relief.";
+        return await CallGeminiAPI(prompt, GetFallbackSymptomTip(symptoms, notes));
+    }
 
-        return Task.FromResult(tip);
+    public async Task<string> GetMoodTipAsync(string mood, string? description)
+    {
+        string prompt = $"Provide a caring AI insight (max 2 sentences) for a user feeling '{mood}'. Description: {description ?? "none"}.";
+        return await CallGeminiAPI(prompt, GetFallbackMoodTip(mood, description));
+    }
+
+    private async Task<string> CallGeminiAPI(string prompt, string fallback)
+    {
+        string apiKey = _config["Gemini:ApiKey"] ?? "";
+        if (string.IsNullOrEmpty(apiKey)) return fallback;
+
+        string[] models = { "gemini-2.0-flash", "gemini-flash-latest" };
+        bool wasRateLimited = false;
+
+        foreach (var model in models)
+        {
+            try
+            {
+                var requestBody = new { contents = new[] { new { parts = new[] { new { text = prompt } } } } };
+                var json = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                
+                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+                var response = await _httpClient.PostAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(jsonResponse);
+                    var text = doc.RootElement.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
+                    if (!string.IsNullOrEmpty(text)) return text.Trim();
+                }
+                else if ((int)response.StatusCode == 429)
+                {
+                    wasRateLimited = true;
+                    continue; 
+                }
+            }
+            catch { continue; }
+        }
+
+        if (wasRateLimited)
+        {
+            return "✨ AI is resting: Cleo has reached her limit of tips for now. Please try again in 1 minute!";
+        }
+
+        return fallback;
+    }
+
+    private string GetFallbackSymptomTip(List<string>? symptoms, string? notes)
+    {
+        if (symptoms == null || !symptoms.Any()) return "Keep tracking your symptoms for insights!";
+        return "Cleo Tip: Prioritize hydration and rest today. Tracking these patterns helps identify cycle health.";
+    }
+
+    private string GetFallbackMoodTip(string mood, string? description)
+    {
+        return $"Cleo Tip: You're feeling {mood}. Be gentle with yourself and notice how your cycle affects your energy.";
     }
 }

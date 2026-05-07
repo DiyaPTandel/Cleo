@@ -177,15 +177,19 @@
     </style>
 }
 
-<div class="admin-users-v3">
-    <div class="page-header-v3">
-        <div class="header-info-v3">
-            <h1 class="page-title-v3">User Management</h1>
-            <p class="subtitle-v3">Manage and track user activity</p>
+<div class="admin-container-v3">
+    <div class="admin-page-header-v3">
+        <div class="admin-header-info-v3">
+            <h1>User Management</h1>
+            <p>Manage and track user activity across the platform</p>
         </div>
-        <div class="header-actions-v3">
-            <button class="btn-primary-v3" style="padding: 0.7rem 1.5rem; border-radius: 2rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <div class="admin-header-actions-v3">
+            <button class="admin-btn-v3 secondary" onclick="window.location.reload()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                Refresh List
+            </button>
+            <button class="admin-btn-v3 primary" onclick="openAddUserModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                 New User
             </button>
         </div>
@@ -229,10 +233,7 @@
             <i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></i>
             <input type="text" placeholder="Search by name or email...">
         </div>
-        <button class="btn-filter-v3">
-            Roles 
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </button>
+
     </div>
 
     <!-- Users Table -->
@@ -291,6 +292,40 @@
                 }
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Add New User Modal -->
+<div class="admin-modal-overlay-v3" id="addUserModal">
+    <div class="admin-modal-v3" style="max-width: 450px;">
+        <div class="modal-icon-v3" style="background: #F3E8FF; color: #8B5CF6; margin: 0 auto 1.25rem auto;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+        </div>
+        <h3 class="modal-title-v3" style="text-align: center;">Register New User</h3>
+        <p class="modal-desc-v3" style="margin-bottom: 1.5rem; text-align: center;">Create a new account manually for the platform.</p>
+        
+        <form asp-action="AddUser" method="post" onsubmit="handleFormSubmit(event)">
+            @Html.AntiForgeryToken()
+            <div style="display: flex; flex-direction: column; gap: 1rem; text-align: left; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Full Name</label>
+                    <input type="text" name="name" required style="width: 100%; box-sizing: border-box; padding: 0.75rem; border: 1px solid #E2E8F0; border-radius: 10px;" placeholder="John Doe" />
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Email Address</label>
+                    <input type="email" name="email" required style="width: 100%; box-sizing: border-box; padding: 0.75rem; border: 1px solid #E2E8F0; border-radius: 10px;" placeholder="john@example.com" />
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.25rem;">Password</label>
+                    <input type="password" name="password" required style="width: 100%; box-sizing: border-box; padding: 0.75rem; border: 1px solid #E2E8F0; border-radius: 10px;" placeholder="••••••••" />
+                </div>
+            </div>
+
+            <div class="modal-actions-v3">
+                <button type="button" class="btn-modal-cancel-v3" onclick="closeAddUserModal()">Cancel</button>
+                <button type="submit" class="btn-modal-confirm-v3" style="background: #8B5CF6;">Create Account</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -360,6 +395,49 @@
 
 @section Scripts {
     <script>
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const url = form.getAttribute('action');
+            const formData = new FormData(form);
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+
+            btn.innerText = 'Processing...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Submission failed:', error);
+                alert('An unexpected error occurred.');
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function openAddUserModal() {
+            document.getElementById('addUserModal').classList.add('active');
+        }
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').classList.remove('active');
+        }
+
         let formToSubmit = null;
 
         function showConfirmModal(event, form, actionType) {
@@ -404,9 +482,39 @@
             formToSubmit = null;
         });
 
-        document.getElementById('modalConfirm').addEventListener('click', function() {
-            if (formToSubmit) {
-                formToSubmit.submit();
+        document.getElementById('modalConfirm').addEventListener('click', async function() {
+            if (!formToSubmit) return;
+
+            const url = formToSubmit.getAttribute('action');
+            const formData = new FormData(formToSubmit);
+            
+            // Show loading state
+            this.innerText = 'Processing...';
+            this.disabled = true;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                    this.innerText = 'Confirm';
+                    this.disabled = false;
+                }
+            } catch (error) {
+                console.error('Action failed:', error);
+                alert('An unexpected error occurred.');
+                this.innerText = 'Confirm';
+                this.disabled = false;
             }
         });
 

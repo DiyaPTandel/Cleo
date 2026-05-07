@@ -177,15 +177,19 @@
     </style>
 }
 
-<div class="admin-users-v3">
-    <div class="page-header-v3">
-        <div class="header-info-v3">
-            <h1 class="page-title-v3">Content management</h1>
-            <p class="subtitle-v3">Manage articles and guides</p>
+<div class="admin-container-v3">
+    <div class="admin-page-header-v3">
+        <div class="admin-header-info-v3">
+            <h1>Content Management</h1>
+            <p>Manage and publish articles, tips, and health guides</p>
         </div>
-        <div class="header-actions-v3">
-            <button class="btn-primary-v3" style="padding: 0.7rem 1.5rem; border-radius: 2rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <div class="admin-header-actions-v3">
+            <button class="admin-btn-v3 secondary" onclick="window.location.reload()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                Sync
+            </button>
+            <button class="admin-btn-v3 primary" onclick="openAddArticleModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 New Article
             </button>
         </div>
@@ -304,7 +308,7 @@
 <!-- Add New Article Modal -->
 <div class="modal-overlay-v3" id="addArticleModal">
     <div class="modal-content-v3">
-        <form asp-controller="Admin" asp-action="AddArticle" method="post">
+        <form asp-controller="Admin" asp-action="AddArticle" method="post" onsubmit="handleFormSubmit(event)">
             @Html.AntiForgeryToken()
             <div class="modal-header-v3" style="padding: 1.5rem 1.75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9;">
                 <h2 style="font-size: 1.15rem; font-weight: 700; color: #1E293B; margin: 0;">Add new article</h2>
@@ -344,7 +348,7 @@
 <!-- Edit Article Modal -->
 <div class="modal-overlay-v3" id="editArticleModal">
     <div class="modal-content-v3">
-        <form asp-controller="Admin" asp-action="EditArticle" method="post">
+        <form asp-controller="Admin" asp-action="EditArticle" method="post" onsubmit="handleFormSubmit(event)">
             @Html.AntiForgeryToken()
             <input type="hidden" name="Id" id="editArticleId" />
             <div class="modal-header-v3" style="padding: 1.5rem 1.75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9;">
@@ -471,24 +475,91 @@
             if (event.target == editModal) closeEditArticleModal();
         });
 
-        document.querySelector('.btn-primary-v3').setAttribute('onclick', 'openAddArticleModal()');
+        // Initialize page functionality
+        console.log("Content management initialized");
 
-        let formToSubmit = null;
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const url = form.getAttribute('action');
+            const formData = new FormData(form);
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
 
+            btn.innerText = 'Processing...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Submission failed:', error);
+                alert('An unexpected error occurred.');
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        let currentForm = null;
         function showConfirmModal(event, form) {
             event.preventDefault();
-            formToSubmit = form;
+            currentForm = form;
             document.getElementById('confirmModal').classList.add('active');
         }
 
         document.getElementById('modalCancel').addEventListener('click', function() {
             document.getElementById('confirmModal').classList.remove('active');
-            formToSubmit = null;
+            currentForm = null;
         });
 
-        document.getElementById('modalConfirm').addEventListener('click', function() {
-            if (formToSubmit) {
-                formToSubmit.submit();
+        document.getElementById('modalConfirm').addEventListener('click', async function() {
+            if (!currentForm) return;
+
+            const url = currentForm.getAttribute('action');
+            const formData = new FormData(currentForm);
+            
+            // Show loading state
+            this.innerText = 'Deleting...';
+            this.disabled = true;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Success: Remove row or reload
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                    this.innerText = 'Delete anyway';
+                    this.disabled = false;
+                }
+            } catch (error) {
+                console.error('Delete failed:', error);
+                alert('An unexpected error occurred.');
+                this.innerText = 'Delete anyway';
+                this.disabled = false;
             }
         });
 

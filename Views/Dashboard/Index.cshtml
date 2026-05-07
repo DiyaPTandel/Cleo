@@ -18,6 +18,14 @@
             background-color: #EBF8FF !important;
             box-shadow: 0 4px 12px rgba(16, 81, 127, 0.1);
         }
+        .note-pill.mood-type {
+            border-left: 4px solid #9F7AEA;
+            background: #FAF5FF;
+        }
+        .note-pill.symptom-type {
+            border-left: 4px solid #3182CE;
+            background: #EBF8FF;
+        }
     </style>
 }
 
@@ -181,14 +189,22 @@
             <div class="section-card notes-widget">
                 <h3>Recent Notes</h3>
                 <div class="notes-stack">
-                    @if (ViewBag.Notes != null)
+                    @if (ViewBag.Notes != null && ((IEnumerable<dynamic>)ViewBag.Notes).Any())
                     {
                         @foreach (var note in ViewBag.Notes)
                         {
-                            <div class="note-pill">
-                                <p class="note-preview">@note</p>
+                            <div class="note-pill @(note.Type == "Mood" ? "mood-type" : "symptom-type")">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 2px; opacity: 0.8;">
+                                    <span>@note.Type</span>
+                                    <span>@note.Date.ToString("MMM dd")</span>
+                                </div>
+                                <p class="note-preview">@note.Content</p>
                             </div>
                         }
+                    }
+                    else
+                    {
+                        <p style="text-align: center; color: #94A3B8; font-size: 0.85rem; padding: 1rem;">No recent notes logged</p>
                     }
                 </div>
                 <div class="center-btn">
@@ -202,9 +218,19 @@
                     <span>💡</span>
                     <h3>Today's Health Tip</h3>
                 </div>
-                <p class="tip-body-v2">
-                    Stay hydrated! Drinking plenty of water can help reduce bloating and PMS symptoms during your cycle.
-                </p>
+                @if (ViewBag.HealthTip != null)
+                {
+                    <p class="tip-body-v2" style="font-weight: 600; margin-bottom: 0.5rem; color: #10517F;">@ViewBag.HealthTip.Title</p>
+                    <p class="tip-body-v2">
+                        @(ViewBag.HealthTip.Content.Length > 120 ? ViewBag.HealthTip.Content.Substring(0, 120) + "..." : ViewBag.HealthTip.Content)
+                    </p>
+                }
+                else
+                {
+                    <p class="tip-body-v2">
+                        Stay hydrated! Drinking plenty of water can help reduce bloating and PMS symptoms during your cycle.
+                    </p>
+                }
                 <a asp-action="Tips" class="btn-more-tips">more tips</a>
             </div>
 

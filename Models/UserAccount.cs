@@ -22,4 +22,5 @@ public class UserAccount
     public int CycleLength { get; set; } = 28;
     public int PeriodLength { get; set; } = 5;
     public DateTime? LastActivityDate { get; set; } = DateTime.UtcNow;
+    public long TotalMinutesSpent { get; set; } = 0;
 }

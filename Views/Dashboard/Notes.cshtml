@@ -44,6 +44,15 @@
                     </div>
                 </div>
                 <p class="note-body-text-v3">@note.Content</p>
+                @if (!string.IsNullOrEmpty(note.AITip))
+                {
+                    <div class="note-ai-tip-v3" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #E2E8F0;">
+                        <span style="font-size: 0.75rem; color: #6B46C1; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 10px;">✨</span> Cleo Insight
+                        </span>
+                        <p style="font-size: 0.85rem; color: #4A5568; font-style: italic; margin-top: 4px;">@note.AITip</p>
+                    </div>
+                }
             </div>
         }
     </div>

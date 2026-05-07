@@ -151,6 +151,22 @@
             }
         })();
         </script>
+
+        <script>
+        // === Activity Tracking Heartbeat ===
+        (function() {
+            function sendHeartbeat() {
+                fetch('/Dashboard/Heartbeat', { 
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
+                }).catch(() => {});
+            }
+            // Send every 60 seconds while the page is active
+            setInterval(sendHeartbeat, 60000);
+            // Initial heartbeat
+            setTimeout(sendHeartbeat, 10000); 
+        })();
+        </script>
     }
 </body>
 </html>
